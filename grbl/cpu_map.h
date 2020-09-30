@@ -190,26 +190,39 @@
   #define LIMIT_PORT        LPC_GPIO1->FIOPIN
   #define X_LIMIT_BIT       24  // X-MIN=24, X-MAX=25
   #define Y_LIMIT_BIT       26  // Y-MIN=26, Y-MAX=27
-  #define Z_LIMIT_BIT	    28  // Z-MIN=28, Z-MAX=29
+  #define Z_LIMIT_BIT	      28  // Z-MIN=28, Z-MAX=29
   #define A_LIMIT_BIT       29  // reuse Z-MAX (P1.29)
   #define LIMIT_MASK       ((1<<X_LIMIT_BIT)|(1<<Y_LIMIT_BIT)|(1<<Z_LIMIT_BIT)|(1<<A_LIMIT_BIT)) // All limit bits
 
+  // Define probe switch input pin.
+  #define PROBE_DDR       LPC_GPIO1->FIODIR
+  #define PROBE_PIN       LPC_GPIO1->FIOPIN
+  #define PROBE_PORT      LPC_GPIO1->FIOPIN
+  #define PROBE_BIT       30  // P1.30
+  #define PROBE_MASK      (1<<PROBE_BIT)
+
   // Define spindle enable and spindle direction output pins.
-  #define SPINDLE_ENABLE_DDR        LPC_GPIO1->FIODIR
-  #define SPINDLE_ENABLE_PORT       LPC_GPIO1->FIOPIN
-  #define SPINDLE_ENABLE_BIT        30  // P1.30
-  #define SPINDLE_DIRECTION_DDR     LPC_GPIO1->FIODIR
-  #define SPINDLE_DIRECTION_PORT    LPC_GPIO1->FIOPIN
-  #define SPINDLE_DIRECTION_BIT     31  // P1.31
+  #define SPINDLE_ENABLE_DDR        LPC_GPIO2->FIODIR
+  #define SPINDLE_ENABLE_PORT       LPC_GPIO2->FIOPIN
+  #define SPINDLE_ENABLE_BIT        7  // P2.7
+  #define SPINDLE_DIRECTION_DDR     LPC_GPIO2->FIODIR
+  #define SPINDLE_DIRECTION_PORT    LPC_GPIO2->FIOPIN
+  #define SPINDLE_DIRECTION_BIT     4  // P2.4
+
+  // The LPC17xx has 6 PWM channels. Each channel has 2 pins. It can drive both pins simultaneously to the same value.
+  //
+  // PWM Channel      PWM1_CH1  PWM1_CH2  PWM1_CH3  PWM1_CH4  PWM1_CH5  PWM1_CH6
+  // Primary pin      P1.18     P1.20     P1.21     P1.23     P1.24     P1.26
+  // Secondary pin    P2.0      P2.1      P2.2      P2.3      P2.4      P2.5
+  #define SPINDLE_PWM_CHANNEL           PWM1_CH6    // BED MOSFET (P2.5)
+  #define SPINDLE_PWM_USE_PRIMARY_PIN   false
+  #define SPINDLE_PWM_USE_SECONDARY_PIN true
+
 
   // Define flood and mist coolant enable output pins.
   #define COOLANT_FLOOD_DDR   LPC_GPIO2->FIODIR
   #define COOLANT_FLOOD_PORT  LPC_GPIO2->FIOPIN
-  #ifndef SPINDLE_PWM_PIN_2_4
-    #define COOLANT_FLOOD_BIT   4  // SMALL MOSFET Q8 (P2.4)
-  #else
-    #define COOLANT_FLOOD_BIT   5  // SMALL MOSFET Q8 (P2.5)
-  #endif
+  #define COOLANT_FLOOD_BIT   22  // SMALL MOSFET Q8 (P2.22)
   #define COOLANT_MIST_DDR    LPC_GPIO2->FIODIR
   #define COOLANT_MIST_PORT   LPC_GPIO2->FIOPIN
   #define COOLANT_MIST_BIT    6  // SMALL MOSFET Q9 (P2.6)
@@ -229,26 +242,6 @@
   #define CONTROL_PCMSK     NotUsed // Pin change interrupt register
   #define CONTROL_MASK      ((1<<CONTROL_RESET_BIT)|(1<<CONTROL_FEED_HOLD_BIT)|(1<<CONTROL_CYCLE_START_BIT)|(1<<CONTROL_SAFETY_DOOR_BIT))
   #define CONTROL_INVERT_MASK   CONTROL_MASK // May be re-defined to only invert certain control pins.
-
-  // Define probe switch input pin.
-  #define PROBE_DDR       LPC_GPIO2->FIODIR
-  #define PROBE_PIN       LPC_GPIO2->FIOPIN
-  #define PROBE_PORT      LPC_GPIO2->FIOPIN
-  #define PROBE_BIT       11  // P2.11
-  #define PROBE_MASK      (1<<PROBE_BIT)
-
-  // The LPC17xx has 6 PWM channels. Each channel has 2 pins. It can drive both pins simultaneously to the same value.
-  //
-  // PWM Channel      PWM1_CH1  PWM1_CH2  PWM1_CH3  PWM1_CH4  PWM1_CH5  PWM1_CH6
-  // Primary pin      P1.18     P1.20     P1.21     P1.23     P1.24     P1.26
-  // Secondary pin    P2.0      P2.1      P2.2      P2.3      P2.4      P2.5
-  #ifdef SPINDLE_PWM_PIN_2_4
-    #define SPINDLE_PWM_CHANNEL         PWM1_CH5    // MOSFET3 (P2.4)
-  #else
-    #define SPINDLE_PWM_CHANNEL         PWM1_CH6    // BED MOSFET (P2.5)
-  #endif
-  #define SPINDLE_PWM_USE_PRIMARY_PIN   false
-  #define SPINDLE_PWM_USE_SECONDARY_PIN true
 
   // Stepper current control
   #define CURRENT_I2C Driver_I2C1       // I2C driver for current control. Comment out to disable (for C3d boards!)

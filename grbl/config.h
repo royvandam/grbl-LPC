@@ -43,8 +43,8 @@
 //#define SPINDLE_PWM_PIN_2_4
 
 // Define machine type for machine specific defaults
-//#define DEFAULTS_GENERIC
-#define DEFAULTS_K40
+#define DEFAULTS_GENERIC
+//#define DEFAULTS_K40
 //#define DEFAULTS_FABKIT
 //#define DEFAULTS_JONAS
 
@@ -67,7 +67,7 @@
 // NOTE: All override realtime commands must be in the extended ASCII character set, starting
 // at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
 // such as status reports, feed hold, reset, and cycle start, are moved to the extended set
-// space, serial.c's RX ISR will need to be modified to accomodate the change.
+// space, serial.c's RX ISR will need to be modified to accommodate the change.
 // #define CMD_RESET 0x80
 // #define CMD_STATUS_REPORT 0x81
 // #define CMD_CYCLE_START 0x82
@@ -187,7 +187,7 @@
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
 // previous tool path, as if nothing happened.
-#define ENABLE_SAFETY_DOOR_INPUT_PIN // Default disabled. Uncomment to enable.
+//#define ENABLE_SAFETY_DOOR_INPUT_PIN // Default disabled. Uncomment to enable.
 
 // After the safety door switch has been toggled and restored, this setting sets the power-up delay
 // between restoring the spindle and coolant and resuming the cycle.
@@ -223,7 +223,7 @@
 // NOTE: If VARIABLE_SPINDLE is enabled(default), this option has no effect as the PWM output and
 // spindle enable are combined to one pin. If you need both this option and spindle speed PWM,
 // uncomment the config option USE_SPINDLE_DIR_AS_ENABLE_PIN below.
-#define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
+//#define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
 
 // Inverts the selected coolant pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
 // for some pre-built electronic boards.
@@ -251,9 +251,9 @@
 // are tied directly to +5V, and the negative pins are separately routed to the
 // STEP, DIR, and ENABLE pins on the controller board, which function as
 // low-side switches to ground.
-//#define OPEN_DRAIN_X
-//#define OPEN_DRAIN_Y
-//#define OPEN_DRAIN_Z
+#define OPEN_DRAIN_X
+#define OPEN_DRAIN_Y
+#define OPEN_DRAIN_Z
 //#define OPEN_DRAIN_A
 
 // ---------------------------------------------------------------------------------------
