@@ -30,18 +30,6 @@
 #include "grbl.h" // For Arduino IDE compatibility.
 #include "LPC17xx.h"
 
-
-// Define board type for pin map and default settings.
-#define CPU_MAP_SMOOTHIEBOARD   // Smoothieboard (NXP LPC1769 MCU)
-//#define CPU_MAP_C3D_REMIX       // Cohesion3D Remix (NXP LPC1769 MCU)
-//#define CPU_MAP_C3D_MINI        // Cohesion3D Mini (NXP LPC1769 MCU)
-//#define CPU_MAP_MKS_SBASE       // MKS SBASE Board (NXP LPC1768 MCU)
-//#define CPU_MAP_AZTEEG_X5       // Azteeg X5 Board (NXP LPC1769 MCU)
-
-// Force other Spindle PWM Pin (default is P2.5)
-//#define SPINDLE_PWM_PIN_1_23
-//#define SPINDLE_PWM_PIN_2_4
-
 // Define machine type for machine specific defaults
 #define DEFAULTS_GENERIC
 //#define DEFAULTS_K40
@@ -106,7 +94,7 @@
 // Meaning that this allows for users with non-standard cartesian machines, such as a lathe (x then z,
 // with no y), to configure the homing cycle behavior to their needs.
 // NOTE: The homing cycle is designed to allow sharing of limit pins, if the axes are not in the same
-// cycle, but this requires some pin settings changes in cpu_map.h file. For example, the default homing
+// cycle, but this requires some pin settings changes in board.h file. For example, the default homing
 // cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
 // By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
 // may be reduced to one pin, if all axes are homed with seperate cycles, or vice versa, all three axes
@@ -206,7 +194,7 @@
 // Inverts pin logic of the control command pins based on a mask. This essentially means you can use
 // normally-closed switches on the specified pins, rather than the default normally-open switches.
 // NOTE: The top option will mask and invert all control pins. The bottom option is an example of
-// inverting only two control pins, the safety door and reset. See cpu_map.h for other bit definitions.
+// inverting only two control pins, the safety door and reset. See board.h for other bit definitions.
 // #define INVERT_CONTROL_PIN_MASK CONTROL_MASK // Default disabled. Uncomment to disable.
 // #define INVERT_CONTROL_PIN_MASK ((1<<CONTROL_SAFETY_DOOR_BIT)|(CONTROL_RESET_BIT)) // Default disabled.
 
@@ -350,9 +338,7 @@
 // normal-open switch and vice versa.
 // NOTE: All pins associated with the feature are disabled, i.e. XYZ limit pins, not individual axes.
 // WARNING: When the pull-ups are disabled, this requires additional wiring with pull-down resistors!
-//#define DISABLE_LIMIT_PIN_PULL_UP     Don't use; pull-up control not ported to ARM yet. pull-up is always on.  
-//#define DISABLE_PROBE_PIN_PULL_UP     Don't use; pull-up control not ported to ARM yet. pull-up is always on.  
-//#define DISABLE_CONTROL_PIN_PULL_UP   Don't use; pull-up control not ported to ARM yet. pull-up is always on.    
+// NOTE: Moved to board.h, all pin related configuration is defined there.
 
 // Sets which axis the tool length offset is applied. Assumes the spindle is always parallel with
 // the selected axis with the tool oriented toward the negative direction. In other words, a positive
@@ -394,30 +380,13 @@
 // in mind that you will begin to lose PWM resolution with increased minimum PWM values, since you have less
 // and less range over the total 255 PWM levels to signal different spindle speeds.
 // NOTE: Compute duty cycle at the minimum PWM by this equation: (% duty cycle)=(SPINDLE_PWM_MIN_VALUE/255)*100
-// define now lives above. #define SPINDLE_PWM_MIN_VALUE 5 // Default disabled. Uncomment to enable. Must be greater than zero. Integer (1-255).
-
-// By default on a 328p(Uno), Grbl combines the variable spindle PWM and the enable into one pin to help
-// preserve I/O pins. For certain setups, these may need to be separate pins. This configure option uses
-// the spindle direction pin (defined in cpu-map.h) as a separate spindle enable pin along with spindle speed PWM pin.
-// NOTE: This configure option only works with VARIABLE_SPINDLE enabled.
-// NOTE: Without a direction pin, M4 will not have a pin output to indicate a difference with M3.
-// NOTE: BEWARE! The Arduino bootloader toggles the D13 pin when it powers up. If you flash Grbl with
-// a programmer (you can use a spare Arduino as "Arduino as ISP". Search the web on how to wire this.),
-// this D13 LED toggling should go away. We haven't tested this though. Please report how it goes!
-#define USE_SPINDLE_DIR_AS_ENABLE_PIN // Default disabled. Uncomment to enable.
-
-// Alters the behavior of the spindle enable pin with the USE_SPINDLE_DIR_AS_ENABLE_PIN option . By default,
-// Grbl will not disable the enable pin if spindle speed is zero and M3/4 is active, but still sets the PWM 
-// output to zero. This allows the users to know if the spindle is active and use it as an additional control
-// input. However, in some use cases, user may want the enable pin to disable with a zero spindle speed and 
-// re-enable when spindle speed is greater than zero. This option does that.
-// NOTE: Requires USE_SPINDLE_DIR_AS_ENABLE_PIN to be enabled.
-// #define SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED // Default disabled. Uncomment to enable.
+// define now lives above.
+// #define SPINDLE_PWM_MIN_VALUE 5 // Default disabled. Uncomment to enable. Must be greater than zero. Integer (1-255).
 
 // With this enabled, Grbl sends back an echo of the line it has received, which has been pre-parsed (spaces
 // removed, capitalized letters, no comments) and is to be immediately executed by Grbl. Echoes will not be
 // sent upon a line buffer overflow, but should for all normal lines sent to Grbl. For example, if a user
-// sendss the line 'g1 x1.032 y2.45 (test comment)', Grbl will echo back in the form '[echo: G1X1.032Y2.45]'.
+// sends the line 'g1 x1.032 y2.45 (test comment)', Grbl will echo back in the form '[echo: G1X1.032Y2.45]'.
 // NOTE: Only use this for debugging purposes!! When echoing, this takes up valuable resources and can effect
 // performance. If absolutely needed for normal operation, the serial write buffer should be greatly increased
 // to help minimize transmission waiting within the serial write protocol.
@@ -645,10 +614,9 @@
    OEM Single File Configuration Option
 
    Instructions: Paste the cpu_map and default setting definitions below without an enclosing
-   #ifdef. Comment out the CPU_MAP_xxx and DEFAULT_xxx defines at the top of this file, and
-   the compiler will ignore the contents of defaults.h and cpu_map.h and use the definitions
+   #ifdef. Comment out the BOARD_xxx and DEFAULT_xxx defines at the top of this file, and
+   the compiler will ignore the contents of defaults.h and board.h and use the definitions
    below.
 */
-
 
 #endif

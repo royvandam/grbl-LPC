@@ -339,7 +339,7 @@ Author: Sonny Jeon
 Subject: Add high-frequency spindle output option. Minor parking motion re-factoring.
 
 - Some laser controllers were reported to need a very high PWM
-frequency. Added a line to enable this in cpu_map.h, if needed.
+frequency. Added a line to enable this in board.h, if needed.
 
 - Cleaned up some of the parking code. Mostly just editing the comments.
 
@@ -406,7 +406,7 @@ setting the minimum PWM value to zero, when it should have been 1.
 - Added a compiler check for minimum PWM to be greater than zero.
 
 - Moved some of the spindle PWM macros to a more appropriate place in
-the cpu_map.h.
+the board.h.
 
 
 ----------------

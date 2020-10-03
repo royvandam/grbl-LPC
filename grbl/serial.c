@@ -112,27 +112,6 @@ void serial_init()
 #endif
 }
 
-/*
-void legacy_serial_init()
-{
-  // Set baud rate
-  #if BAUD_RATE < 57600
-    uint16_t UBRR0_value = ((F_CPU / (8L * BAUD_RATE)) - 1)/2 ;
-    UCSR0A &= ~(1 << U2X0); // baud doubler off  - Only needed on Uno XXX
-  #else
-    uint16_t UBRR0_value = ((F_CPU / (4L * BAUD_RATE)) - 1)/2;
-    UCSR0A |= (1 << U2X0);  // baud doubler on for high baud rates, i.e. 115200
-  #endif
-  UBRR0H = UBRR0_value >> 8;
-  UBRR0L = UBRR0_value;
-
-  // enable rx, tx, and interrupt on complete reception of a byte
-  UCSR0B |= (1<<RXEN0 | 1<<TXEN0 | 1<<RXCIE0);
-
-  // defaults to 8-bit, no parity, 1 stop bit
-}
-*/
-
 // Writes one byte to the TX serial buffer. Called by main program.
 void serial_write(uint8_t data) {
 #ifdef USE_USB
@@ -156,27 +135,7 @@ void serial_write(uint8_t data) {
   serialDriver.Send(serial_tx_buffer, 1);
 #endif
 }
-/*
-// Writes one byte to the TX serial buffer. Called by main program.
-void legacy_serial_write(uint8_t data) {
-  // Calculate next head
-  uint8_t next_head = serial_tx_buffer_head + 1;
-  if (next_head == TX_RING_BUFFER) { next_head = 0; }
 
-  // Wait until there is space in the buffer
-  while (next_head == serial_tx_buffer_tail) {
-    // TODO: Restructure st_prep_buffer() calls to be executed here during a long print.
-    if (sys_rt_exec_state & EXEC_RESET) { return; } // Only check for abort to avoid an endless loop.
-  }
-
-  // Store data and advance head
-  serial_tx_buffer[serial_tx_buffer_head] = data;
-  serial_tx_buffer_head = next_head;
-
-  // Enable Data Register Empty Interrupt to make sure tx-streaming is running
-  UCSR0B |=  (1 << UDRIE0);
-}
-*/
 //Device driver interrupt
 // The CMSIS Driver doesn't have seperate interrupts/callbacks available for TX and RX but instead
 // is a single composite interrupt.
@@ -189,27 +148,6 @@ void serialInterrupt(uint32_t event) {
   }
 }
 #endif
-
-//We don't use TX interrupts directly with the ARM Driver.
-// Data Register Empty Interrupt handler
-/*
-void legacy_TX_ISR(void* SERIAL_UDRE)
-{
-  uint8_t tail = serial_tx_buffer_tail; // Temporary serial_tx_buffer_tail (to optimize for volatile)
-
-  // Send a byte from the buffer
-  UDR0 = serial_tx_buffer[tail];
-
-  // Update tail position
-  tail++;
-  if (tail == TX_RING_BUFFER) { tail = 0; }
-
-  serial_tx_buffer_tail = tail;
-
-  // Turn off Data Register Empty Interrupt to stop tx-streaming if this concludes the transfer
-  if (tail == serial_tx_buffer_head) { UCSR0B &= ~(1 << UDRIE0); }
-}
-*/
 
 // Fetches the first byte in the serial read buffer. Called by main program.
 uint8_t serial_read()
@@ -284,7 +222,6 @@ void legacy_ISR(uint8_t data)
       }
   }
 }
-
 
 void serial_reset_read_buffer()
 {

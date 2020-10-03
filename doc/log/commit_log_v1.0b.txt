@@ -113,7 +113,7 @@ settings require a new settings version, so Grbl will automatically
 wipe and restore the EEPROM with the new defaults.
 
 - Control pin can now be inverted individually with a
-CONTROL_INVERT_MASK in the cpu_map header file. Not typical for users
+CONTROL_INVERT_MASK in the board.header file. Not typical for users
 to need this, but handy to have.
 
 - Fixed bug when Grbl receive too many characters in a line and

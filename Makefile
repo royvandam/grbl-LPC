@@ -24,14 +24,17 @@ INCLUDES =                                        \
     -I CMSIS_5/CMSIS/Core/Include                 \
     -I CMSIS_5/CMSIS/Driver/Include               \
     -I CMSIS_5/Device/ARM/ARMCM3/Include          \
+    -I NXP_LPC/LPC1700/CMSIS/Driver               \
+    -I VCOM_lib                                   \
+    -I driver                                     \
     -I grbl                                       \
     -I grbl-lpc                                   \
     -I lpc17xx                                    \
-    -I VCOM_lib                                   \
 
 # Compile all .c and .cpp files in these directories
 # Hack: .c files are compiled as if they were c++.
 SRC_DIRS =          \
+	driver          \
 	grbl            \
     grbl-lpc        \
     VCOM_lib        \
@@ -59,7 +62,7 @@ CMSIS_EXCLUDE_OBJECTS =             \
 AS      = arm-none-eabi-as
 CC      = arm-none-eabi-gcc
 CXX     = arm-none-eabi-g++
-LD      = arm-none-eabi-gcc
+LD      = arm-none-eabi-g++
 OBJCOPY = arm-none-eabi-objcopy
 OBJDUMP = arm-none-eabi-objdump
 SIZE    = arm-none-eabi-size 

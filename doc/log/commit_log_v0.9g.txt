@@ -1108,7 +1108,7 @@ slow so why use up our 256 voltage bins for them?
 - Remove some persistent variables from coolant and spindle control.
 They were redundant.
 
-- Removed a VARIABLE_SPINDLE define in cpu_map.h that shouldn’t have
+- Removed a VARIABLE_SPINDLE define in board.h that shouldn’t have
 been there.
 
 - Changed the DEFAULT_ARC_TOLERANCE to 0.002mm to improve arc tracing.
@@ -1312,7 +1312,7 @@ or more of a patch. Doesn’t work with a straight call-response
 streaming protocol, but works fine with serial buffer pre-filling
 streaming that most clients use.
 
-- Renamed the pin_map.h to cpu_map.h to more accurately describe what
+- Renamed the pin_map.h to board.h to more accurately describe what
 the file is.
 
 - Pushed an auto start bug fix upon re-initialization.

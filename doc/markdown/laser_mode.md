@@ -23,7 +23,7 @@ Enabling or disabling Grbl's laser mode is easy. Just alter the **$32** Grbl set
 
 When laser mode is enabled, Grbl controls laser power by varying the **0-5V** voltage from the spindle PWM D11 pin. **0V** should be treated as disabled, while **5V** is full power. Intermediate output voltages are also assumed to be linear with laser power, such that **2.5V** is approximate 50% laser power. (A compile time option exists to shift this linear model to start at a non-zero voltage.) 
 
-By default, the spindle PWM frequency is **1kHz**, which is the recommended PWM frequency for most current Grbl-compatible lasers system. If a different frequency is required, this may be altered by editing the `cpu_map.h` file. 
+By default, the spindle PWM frequency is **1kHz**, which is the recommended PWM frequency for most current Grbl-compatible lasers system. If a different frequency is required, this may be altered by editing the `board.h` file. 
 
 The laser is enabled with the `M3` spindle CW and `M4` spindle CCW commands. These enable two different laser modes that are advantageous for different reasons each.
 	

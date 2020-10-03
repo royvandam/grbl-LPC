@@ -72,5 +72,4 @@ uint8_t spindle_get_state();
 // Stop and start spindle routines. Called by all spindle routines and stepper ISR.
 void spindle_stop();
 
-
 #endif

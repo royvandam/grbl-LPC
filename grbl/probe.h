@@ -31,7 +31,7 @@ void probe_init();
 // Called by probe_init() and the mc_probe() routines. Sets up the probe pin invert mask to
 // appropriately set the pin logic according to setting for normal-high/normal-low operation
 // and the probing cycle modes for toward-workpiece/away-from-workpiece.
-void probe_configure_invert_mask(uint8_t is_probe_away);
+void probe_configure_invert(uint8_t is_probe_away);
 
 // Returns probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 uint8_t probe_get_state();

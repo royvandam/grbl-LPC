@@ -46,7 +46,7 @@
 #include "settings.h"
 #include "system.h"
 #include "defaults.h"
-#include "cpu_map.h"
+#include "board.h"
 #include "planner.h"
 #include "coolant_control.h"
 #include "eeprom.h"
@@ -73,16 +73,6 @@
 
 #if defined(USE_SPINDLE_DIR_AS_ENABLE_PIN) && !defined(VARIABLE_SPINDLE)
   #error "USE_SPINDLE_DIR_AS_ENABLE_PIN may only be used with VARIABLE_SPINDLE enabled"
-#endif
-
-/*
-#if defined(USE_SPINDLE_DIR_AS_ENABLE_PIN) && !defined(CPU_MAP_ATMEGA328P)
-  #error "USE_SPINDLE_DIR_AS_ENABLE_PIN may only be used with a 328p processor"
-#endif
-*/
-
-#if !defined(USE_SPINDLE_DIR_AS_ENABLE_PIN) && defined(SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED)
-  #error "SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED may only be used with USE_SPINDLE_DIR_AS_ENABLE_PIN enabled"
 #endif
 
 #if defined(PARKING_ENABLE)

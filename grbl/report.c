@@ -405,12 +405,6 @@ void report_build_info(char *line)
   #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
     serial_write('A');
   #endif
-  #ifdef USE_SPINDLE_DIR_AS_ENABLE_PIN
-    serial_write('D');
-  #endif
-  #ifdef SPINDLE_ENABLE_OFF_WITH_ZERO_SPEED
-    serial_write('0');
-  #endif
   #ifdef ENABLE_SOFTWARE_DEBOUNCE
     serial_write('S');
   #endif

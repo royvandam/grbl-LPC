@@ -41,7 +41,7 @@ volatile uint8_t sys_rt_exec_accessory_override; // Global realtime executor bit
 int main(void)
 {
   // Initialize system upon power-up.
-  debug_init();    // Initialize debug leds
+  debug_init();    // Initialize debug LEDs
   isr_init();      // Set ISR priorities (stepper ISR uses Timer1)
   delay_init();    // Setup delay timer (uses Timer3)
   serial_init();   // Setup serial baud rate and interrupts
@@ -72,6 +72,8 @@ int main(void)
   #ifdef HOMING_INIT_LOCK
     if (bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE)) { sys.state = STATE_ALARM; }
   #endif
+
+  board::leds[0] = true;
 
   // Grbl initialization loop upon power-up or a system abort. For the latter, all processes
   // will return to this loop to be cleanly re-initialized.

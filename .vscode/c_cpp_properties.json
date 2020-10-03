@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "arm-gcc-non-eabi",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "includePath": [
+                "${workspaceFolder}/CMSIS_5/CMSIS/Core/Include/**",
+                "${workspaceFolder}/CMSIS_5/CMSIS/Driver/Include/**",
+                "${workspaceFolder}/CMSIS_5/Device/ARM/ARMCM3/Include/**",
+                "${workspaceFolder}/NXP_LPC/LPC1700/CMSIS/Driver/**",
+                "${workspaceFolder}/VCOM_lib/**",
+                "${workspaceFolder}/driver/**",
+                "${workspaceFolder}/grbl-lpc/**",
+                "${workspaceFolder}/grbl/**",
+                "${workspaceFolder}/lpc17xx/**"
+            ],
+            "forcedInclude": [
+                "${workspaceFolder}/.vscode/c_cpp_undef.h"
+            ]
+        }
+    ],
+    "version": 4
+}
