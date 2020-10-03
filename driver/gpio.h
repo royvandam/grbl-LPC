@@ -21,50 +21,93 @@
 // IN THE SOFTWARE
 
 #include <cstdint>
+#include <cassert>
+#include <array>
 
 namespace GPIO {
 
-enum struct Direction {
+enum struct Direction : uint32_t {
     Input, Output
 };
 
-enum struct Pull {
-    None, Up, Down
+enum struct Pull : uint32_t {
+    Up, None, Down
 };
 
 struct Pin {
-    uint8_t port;
-    uint8_t number;
-    Direction direction;
-    Pull pull;
-    bool open_drain;
-    bool initial;
+    uint32_t port;
+    uint32_t index;
+    uint32_t mask;
+
+    struct Config {
+        Direction direction;
+        Pull pull;
+        bool open_drain;
+        uint32_t init_val;
+    } config;
+
+    constexpr Pin(uint32_t port, uint32_t index,
+        Direction direction = Direction::Input,
+        Pull pull = Pull::Up,
+        bool open_drain = false,
+        uint32_t init_val = 0UL
+    )
+        : port(port)
+        , index(index)
+        , mask(1 << index)
+        , config({
+            direction, pull,
+            open_drain, init_val
+        })
+    {}
 
     void init() const;
 
-    bool get() const;
-    void set(bool value) const;
+    void set_pull(Pull pull) const;
+    void set_direction(Direction direction) const;
+    void set_open_drain(bool enabled) const;
+
+    uint32_t get() const;
+    void set(uint32_t value) const;
     void toggle() const;
 
-    const Pin& operator=(bool value) const;
-    operator bool() const;
+    const Pin& operator=(uint32_t value) const;
+    operator uint32_t() const;
 };
 
-constexpr Pin static Configure(
-    uint8_t port, uint8_t number,
-    Direction direction = Direction::Input,
-    Pull pull = Pull::Up,
-    bool open_drain = false,
-    bool initial = false)
-{
-    return Pin {
-        .port = port,
-        .number = number,
-        .direction = direction,
-        .pull = pull,
-        .open_drain = open_drain,
-        .initial = initial
+namespace Detail {
+    struct Bus {
+        uint32_t mask;
+        uint32_t port;
+
+        void write(uint32_t value) const;
+        uint32_t read() const;
+
+        const Bus& operator=(uint32_t value) const;
+        operator uint32_t() const;
     };
 }
+
+template<std::size_t N>
+struct Bus : Detail::Bus {
+    static_assert(N <= 32);
+    std::array<Pin, N> pins;
+
+    constexpr Bus(uint32_t port, std::array<Pin, N> pins)
+        : Detail::Bus{0, port}
+        , pins(pins)
+    {
+        for (auto& pin : pins) {
+            assert(port == pin.port);
+            mask |= pin.mask;
+        }
+    }
+
+    void init() const {
+        for (auto& pin : pins) {
+            pin.init();
+        }
+    }
+};
 
 }

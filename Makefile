@@ -107,7 +107,8 @@ C_AS_CPP_CFLAGS = $(CFLAGS)             \
 
 CXXFLAGS = $(CFLAGS)                    \
     -fno-rtti                           \
-    -std=gnu++14                        \
+    -std=gnu++17                        \
+	-Wno-register						\
 
 LIBS = -Wl,--start-group -lgcc -lc -lm -Wl,--end-group
 

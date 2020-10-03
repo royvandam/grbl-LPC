@@ -25,23 +25,52 @@
 namespace board {
 
 void init();
-  constexpr static GPIO::Pin leds[] = {
-    GPIO::Configure(1, 18, GPIO::Direction::Output),
-    GPIO::Configure(1, 19, GPIO::Direction::Output),
-    GPIO::Configure(1, 20, GPIO::Direction::Output),
-    GPIO::Configure(1, 21, GPIO::Direction::Output)
-  };
 
-  constexpr static GPIO::Pin probe =
-    GPIO::Configure(1, 30, GPIO::Direction::Input, GPIO::Pull::Up);
-  
-  struct {
-    GPIO::Pin enable;
-    GPIO::Pin direction;
-  } constexpr static spindle = {
-    .enable = GPIO::Configure(2, 7, GPIO::Direction::Output),
-    .direction = GPIO::Configure(1, 22, GPIO::Direction::Output)
-  };
+constexpr static GPIO::Pin leds[] = {
+    GPIO::Pin(1, 18, GPIO::Direction::Output),
+    GPIO::Pin(1, 19, GPIO::Direction::Output),
+    GPIO::Pin(1, 20, GPIO::Direction::Output),
+    GPIO::Pin(1, 21, GPIO::Direction::Output)
+};
+
+namespace steppers {
+    constexpr static GPIO::Bus<4> step(0, {
+        GPIO::Pin(0, 0, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
+        GPIO::Pin(0, 1, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
+        GPIO::Pin(0, 2, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
+        GPIO::Pin(0, 3, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+    });
+
+    constexpr static GPIO::Bus<4> direction(0, {
+        GPIO::Pin(0,  5, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
+        GPIO::Pin(0, 11, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
+        GPIO::Pin(0, 20, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
+        GPIO::Pin(0, 22, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+    });
+
+    constexpr static GPIO::Bus<4> enable(0, {
+        GPIO::Pin(0,  4, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
+        GPIO::Pin(0, 10, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
+        GPIO::Pin(0, 19, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
+        GPIO::Pin(0, 21, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+    });
+}
+
+constexpr static GPIO::Pin probe(1, 30, GPIO::Direction::Input, GPIO::Pull::Up);
+
+namespace spindle {
+    constexpr static GPIO::Pin enable(2, 7, GPIO::Direction::Output);
+    constexpr static GPIO::Pin direction(1, 22, GPIO::Direction::Output);
+}
+
+constexpr static GPIO::Bus<6> limits(1, {
+    GPIO::Pin(1, 24, GPIO::Direction::Input, GPIO::Pull::Up), // X Min
+    GPIO::Pin(1, 25, GPIO::Direction::Input, GPIO::Pull::Up), // X Max
+    GPIO::Pin(1, 26, GPIO::Direction::Input, GPIO::Pull::Up), // Y Min
+    GPIO::Pin(1, 27, GPIO::Direction::Input, GPIO::Pull::Up), // Y Max
+    GPIO::Pin(1, 28, GPIO::Direction::Input, GPIO::Pull::Up), // Z Min
+    GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up)  // Z Max
+});
 
 }
 
@@ -83,14 +112,6 @@ void init();
 #define A_LIMIT_BIT       29  // reuse Z-MAX (P1.29)
 #define LIMIT_MASK       ((1<<X_LIMIT_BIT)|(1<<Y_LIMIT_BIT)|(1<<Z_LIMIT_BIT)|(1<<A_LIMIT_BIT)) // All limit bits
 
-// Define spindle enable and spindle direction output pins.
-#define SPINDLE_ENABLE_DDR        LPC_GPIO2->FIODIR
-#define SPINDLE_ENABLE_PORT       LPC_GPIO2->FIOPIN
-#define SPINDLE_ENABLE_BIT        7  // P2.7
-#define SPINDLE_DIRECTION_DDR     LPC_GPIO2->FIODIR
-#define SPINDLE_DIRECTION_PORT    LPC_GPIO2->FIOPIN
-#define SPINDLE_DIRECTION_BIT     4  // P2.4
-
 // The LPC17xx has 6 PWM channels. Each channel has 2 pins. It can drive both pins simultaneously to the same value.
 //
 // PWM Channel      PWM1_CH1  PWM1_CH2  PWM1_CH3  PWM1_CH4  PWM1_CH5  PWM1_CH6
@@ -99,7 +120,6 @@ void init();
 #define SPINDLE_PWM_CHANNEL           PWM1_CH6    // BED MOSFET (P2.5)
 #define SPINDLE_PWM_USE_PRIMARY_PIN   false
 #define SPINDLE_PWM_USE_SECONDARY_PIN true
-
 
 // Define flood and mist coolant enable output pins.
 #define COOLANT_FLOOD_DDR   LPC_GPIO2->FIODIR
@@ -137,10 +157,4 @@ void init();
 #ifndef SPINDLE_PWM_MIN_VALUE
   #define SPINDLE_PWM_MIN_VALUE   1   // Must be greater than zero.
 #endif
-//#define SPINDLE_PWM_OFF_VALUE     0 // Defined in config.h
-#define SPINDLE_PWM_RANGE         (SPINDLE_PWM_MAX_VALUE-SPINDLE_PWM_MIN_VALUE)
-#define SPINDLE_TCCRA_REGISTER    TCCR2A
-#define SPINDLE_TCCRB_REGISTER    TCCR2B
-#define SPINDLE_OCR_REGISTER      OCR2A
-#define SPINDLE_COMB_BIT          COM2A1
 

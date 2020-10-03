@@ -24,8 +24,6 @@
 #include "grbl.h"
 #include "Driver_I2C.h"
 
-#undef min
-#undef max
 #include <algorithm>
 
 #ifdef CURRENT_I2C

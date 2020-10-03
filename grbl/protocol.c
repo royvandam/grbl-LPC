@@ -20,6 +20,7 @@
 */
 
 #include "grbl.h"
+#include <algorithm>
 
 // Define line flags. Includes comment type tracking and line overflow detection.
 #define LINE_FLAG_OVERFLOW bit(0)
@@ -413,8 +414,8 @@ void protocol_exec_rt_system()
     if (rt_exec & EXEC_FEED_OVR_COARSE_MINUS) { new_f_override -= FEED_OVERRIDE_COARSE_INCREMENT; }
     if (rt_exec & EXEC_FEED_OVR_FINE_PLUS) { new_f_override += FEED_OVERRIDE_FINE_INCREMENT; }
     if (rt_exec & EXEC_FEED_OVR_FINE_MINUS) { new_f_override -= FEED_OVERRIDE_FINE_INCREMENT; }
-    new_f_override = min(new_f_override,MAX_FEED_RATE_OVERRIDE);
-    new_f_override = max(new_f_override,MIN_FEED_RATE_OVERRIDE);
+    new_f_override = std::min(new_f_override, (uint8_t)MAX_FEED_RATE_OVERRIDE);
+    new_f_override = std::max(new_f_override, (uint8_t)MIN_FEED_RATE_OVERRIDE);
 
     uint8_t new_r_override = sys.r_override;
     if (rt_exec & EXEC_RAPID_OVR_RESET) { new_r_override = DEFAULT_RAPID_OVERRIDE; }
@@ -441,8 +442,8 @@ void protocol_exec_rt_system()
     if (rt_exec & EXEC_SPINDLE_OVR_COARSE_MINUS) { last_s_override -= SPINDLE_OVERRIDE_COARSE_INCREMENT; }
     if (rt_exec & EXEC_SPINDLE_OVR_FINE_PLUS) { last_s_override += SPINDLE_OVERRIDE_FINE_INCREMENT; }
     if (rt_exec & EXEC_SPINDLE_OVR_FINE_MINUS) { last_s_override -= SPINDLE_OVERRIDE_FINE_INCREMENT; }
-    last_s_override = min(last_s_override,MAX_SPINDLE_SPEED_OVERRIDE);
-    last_s_override = max(last_s_override,MIN_SPINDLE_SPEED_OVERRIDE);
+    last_s_override = std::min(last_s_override, (uint8_t)MAX_SPINDLE_SPEED_OVERRIDE);
+    last_s_override = std::max(last_s_override, (uint8_t)MIN_SPINDLE_SPEED_OVERRIDE);
 
     if (last_s_override != sys.spindle_speed_ovr) {
       bit_true(sys.step_control, STEP_CONTROL_UPDATE_SPINDLE_PWM);
@@ -569,7 +570,7 @@ static void protocol_exec_rt_suspend()
             if (bit_isfalse(sys.suspend,SUSPEND_RESTART_RETRACT)) {
               memcpy(restore_target,parking_target,sizeof(parking_target));
               retract_waypoint += restore_target[PARKING_AXIS];
-              retract_waypoint = min(retract_waypoint,PARKING_TARGET);
+              retract_waypoint = std::min(retract_waypoint,PARKING_TARGET);
             }
 
             // Execute slow pull-out parking retract motion. Parking requires homing enabled, the

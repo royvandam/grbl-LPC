@@ -24,10 +24,10 @@
 
 // Homing axis search distance multiplier. Computed by this value times the cycle travel.
 #ifndef HOMING_AXIS_SEARCH_SCALAR
-  #define HOMING_AXIS_SEARCH_SCALAR  1.5 // Must be > 1 to ensure limit switch will be engaged.
+  #define HOMING_AXIS_SEARCH_SCALAR  1.5f // Must be > 1 to ensure limit switch will be engaged.
 #endif
 #ifndef HOMING_AXIS_LOCATE_SCALAR
-  #define HOMING_AXIS_LOCATE_SCALAR  5.0 // Must be > 1 to ensure limit switch is cleared.
+  #define HOMING_AXIS_LOCATE_SCALAR  5.0f // Must be > 1 to ensure limit switch is cleared.
 #endif
 
 void limits_init()
@@ -172,7 +172,7 @@ void limits_go_home(uint8_t cycle_mask)
     if (bit_istrue(cycle_mask,bit(idx))) {
       // Set target based on max_travel setting. Ensure homing switches engaged with search scalar.
       // NOTE: settings.max_travel[] is stored as a negative value.
-      max_travel = max(max_travel,(-HOMING_AXIS_SEARCH_SCALAR)*settings.max_travel[idx]);
+      max_travel = std::max(max_travel, (-HOMING_AXIS_SEARCH_SCALAR) * settings.max_travel[idx]);
     }
   }
 

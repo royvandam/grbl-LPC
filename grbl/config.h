@@ -36,6 +36,9 @@
 //#define DEFAULTS_FABKIT
 //#define DEFAULTS_JONAS
 
+// Define the numer of axes
+#define N_AXIS 4 
+
 // Serial baud rate
 // #define BAUD_RATE 230400
 #define BAUD_RATE 115200

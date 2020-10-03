@@ -362,7 +362,7 @@ simplified way to compute jerk.   - Fixed bugs related to entry and exit
 factors. They were computed based on the current nominal speeds but not
 when computing exit factors for neighboring blocks. Removed factors and
 replaced with entry speeds only. Factors now only computed for stepper
-trapezoid rate conversions.  - Misc: Added min(), next_block_index,
+trapezoid rate conversions.  - Misc: Added std::min(), next_block_index,
 prev_block_index functions for clarity.
 
 

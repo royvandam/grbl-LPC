@@ -30,13 +30,13 @@
 #define SOME_LARGE_VALUE 1.0E+38
 
 // Axis array index values. Must start with 0 and be continuous.
-#define N_AXIS 4 // Number of axes
+
 #define X_AXIS 0 // Axis indexing value.
 #define Y_AXIS 1
 #define Z_AXIS 2
 #define A_AXIS 3
-//#define B_AXIS 4
-//#define C_AXIS 5
+#define B_AXIS 4
+#define C_AXIS 5
 
 // CoreXY motor assignments. DO NOT ALTER.
 // NOTE: If the A and B motor axis bindings are changed, this effects the CoreXY equations.
@@ -57,8 +57,6 @@
 #define clear_vector(a) memset(a, 0, sizeof(a))
 #define clear_vector_float(a) memset(a, 0.0, sizeof(float)*N_AXIS)
 // #define clear_vector_long(a) memset(a, 0.0, sizeof(long)*N_AXIS)
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-#define min(a,b) (((a) < (b)) ? (a) : (b))
 #define isequal_position_vector(a,b) !(memcmp(a, b, sizeof(float)*N_AXIS))
 
 // Bit field and masking macros

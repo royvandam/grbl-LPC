@@ -23,6 +23,8 @@
 #include "grbl.h"
 #include "pwm_driver.h"
 
+using namespace board;
+
 #ifdef INVERT_SPINDLE_ENABLE_PIN
 const static bool invert_spindle_enable = true;
 #else
@@ -38,8 +40,8 @@ const static bool invert_spindle_enable = false;
 #endif
 
 void spindle_init() {
-  board::spindle.enable.init();
-  board::spindle.direction.init();
+  spindle::enable.init();
+  spindle::direction.init();
 
   #ifdef VARIABLE_SPINDLE
     spindle_pwm_period = (SystemCoreClock / settings.spindle_pwm_freq);
@@ -57,16 +59,16 @@ void spindle_init() {
 
 bool spindle_get_enabled() {
 	#ifdef VARIABLE_SPINDLE
+    // TODO(roda): use PWM driver instead of enable pin
     // Check if PWM is enabled
-    // return (SPINDLE_TCCRA_REGISTER & (1<<SPINDLE_COMB_BIT));
-    return (board::spindle.enable.get() ^ invert_spindle_enable);
+    return (spindle::enable.get() ^ invert_spindle_enable);
   #else
-    return (board::spindle.enable.get() ^ invert_spindle_enable);
+    return (spindle::enable.get() ^ invert_spindle_enable);
   #endif
 }
 
 uint8_t spindle_get_direction() {
-  return board::spindle.direction.get() ? SPINDLE_STATE_CCW : SPINDLE_STATE_CW;
+  return spindle::direction.get() ? SPINDLE_STATE_CCW : SPINDLE_STATE_CW;
 }
 
 uint8_t spindle_get_state()
@@ -85,8 +87,7 @@ void spindle_stop()
   #ifdef VARIABLE_SPINDLE
     pwm_set_width(&SPINDLE_PWM_CHANNEL, 0);
   #endif
-  board::spindle.enable.set(false ^ invert_spindle_enable);
-  board::leds[0] = false;
+  spindle::enable.set(false ^ invert_spindle_enable);
 }
 
 #ifdef VARIABLE_SPINDLE
@@ -155,9 +156,9 @@ void spindle_stop()
       spindle_set_speed(spindle_compute_pwm_value(rpm));
 #endif
 
-      board::spindle.direction = (state == SPINDLE_ENABLE_CCW);
-      board::spindle.enable = true ^ invert_spindle_enable;
-      board::leds[0] = true;
+      spindle::direction = (state == SPINDLE_ENABLE_CCW);
+      spindle::enable = true ^ invert_spindle_enable;
+      leds[0] = true;
       break;
   }
   
