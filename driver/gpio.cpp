@@ -111,7 +111,7 @@ void Bus::write(uint32_t value) const {
 
     // The LCP however supports a masked write to the port...
     LPC_GPIO(port)->FIOMASK = ~mask;
-    LPC_GPIO(port)->FIOPIN |= (value ^ invert_mask);
+    LPC_GPIO(port)->FIOPIN  = (value ^ invert_mask);
     LPC_GPIO(port)->FIOMASK = 0;
 }
 

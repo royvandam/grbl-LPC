@@ -39,8 +39,8 @@ constexpr static GPIO::Pin leds[] = {
 // NOTE: All pins within a bus must be on the same port.
 // NOTE: The order is crucial, must be XYZA!
 namespace step {
-    // Define step pulse output pins. 
-    constexpr static GPIO::Bus<N_AXIS> pulse(0, {
+    // Define step output pins. 
+    constexpr static GPIO::Bus<N_AXIS> step(0, {
         GPIO::Pin(0, 0, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 1, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
         GPIO::Pin(0, 2, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
@@ -94,30 +94,6 @@ namespace coolant {
 }
 
 }
-
-#define STEP_DDR        LPC_GPIO2->FIODIR
-#define STEP_PORT       LPC_GPIO2->FIOPIN
-#define X_STEP_BIT      0
-#define Y_STEP_BIT      1
-#define Z_STEP_BIT      2
-#define A_STEP_BIT      3
-#define STEP_MASK       ((1<<X_STEP_BIT)|(1<<Y_STEP_BIT)|(1<<Z_STEP_BIT)|(1<<A_STEP_BIT)) // All step bits
-
-#define DIRECTION_DDR     LPC_GPIO0->FIODIR
-#define DIRECTION_PORT    LPC_GPIO0->FIOPIN
-#define X_DIRECTION_BIT   5
-#define Y_DIRECTION_BIT   11
-#define Z_DIRECTION_BIT   20
-#define A_DIRECTION_BIT   22
-#define DIRECTION_MASK    ((1<<X_DIRECTION_BIT)|(1<<Y_DIRECTION_BIT)|(1<<Z_DIRECTION_BIT)|(1<<A_DIRECTION_BIT)) // All direction bits
-
-#define STEPPERS_DISABLE_DDR    LPC_GPIO0->FIODIR
-#define STEPPERS_DISABLE_PORT   LPC_GPIO0->FIOPIN
-#define X_DISABLE_BIT           4
-#define Y_DISABLE_BIT           10
-#define Z_DISABLE_BIT           19
-#define A_DISABLE_BIT           21
-#define STEPPERS_DISABLE_MASK   ((1<<X_DISABLE_BIT)|(1<<Y_DISABLE_BIT)|(1<<Z_DISABLE_BIT)|(1<<A_DISABLE_BIT))
 
 // The LPC17xx has 6 PWM channels. Each channel has 2 pins. It can drive both pins simultaneously to the same value.
 //

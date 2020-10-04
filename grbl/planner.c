@@ -23,6 +23,8 @@
 #include "grbl.h"
 #include <algorithm>
 
+using namespace board;
+
 static plan_block_t block_buffer[BLOCK_BUFFER_SIZE];  // A ring buffer for motion instructions
 static uint8_t block_buffer_tail;     // Index of the block to process now
 static uint8_t block_buffer_head;     // Index of the next block to be pushed
@@ -375,7 +377,7 @@ uint8_t plan_buffer_line(float *target, plan_line_data_t *pl_data)
     unit_vec[idx] = delta_mm; // Store unit vector numerator
 
     // Set direction bits. Bit enabled always means direction is negative.
-    if (delta_mm < 0.0 ) { block->direction_bits |= get_direction_pin_mask(idx); }
+    if (delta_mm < 0.0 ) { block->direction_bits |= step::direction.pins[idx].mask; }
   }
 
   // Bail if this is a zero-length block. Highly unlikely to occur.

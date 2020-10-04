@@ -32,7 +32,6 @@
 // Define bit flag masks for the boolean settings in settings.flag.
 #define BITFLAG_REPORT_INCHES      bit(0)
 #define BITFLAG_LASER_MODE         bit(1)
-#define BITFLAG_INVERT_ST_ENABLE   bit(2)
 #define BITFLAG_HARD_LIMIT_ENABLE  bit(3)
 #define BITFLAG_HOMING_ENABLE      bit(4)
 #define BITFLAG_SOFT_LIMIT_ENABLE  bit(5)
@@ -84,8 +83,6 @@ typedef struct {
 
   // Remaining Grbl settings
   uint8_t pulse_microseconds;
-  uint8_t step_invert_mask;
-  uint8_t dir_invert_mask;
   uint8_t stepper_idle_lock_time; // If max value 255, steppers do not disable.
   uint8_t status_report_mask; // Mask to indicate desired report data.
   float junction_deviation;
@@ -134,12 +131,5 @@ void settings_write_coord_data(uint8_t coord_select, float *coord_data, bool for
 
 // Reads selected coordinate data from EEPROM
 uint8_t settings_read_coord_data(uint8_t coord_select, float *coord_data);
-
-// Returns the step pin mask according to Grbl's internal axis numbering
-uint32_t get_step_pin_mask(uint8_t i);
-
-// Returns the direction pin mask according to Grbl's internal axis numbering
-uint32_t get_direction_pin_mask(uint8_t i);
-
 
 #endif

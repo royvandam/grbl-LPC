@@ -130,11 +130,11 @@ void limits_go_home(uint8_t cycle_mask) {
         // Initialize pin masks
 #ifdef COREXY
         if ((axis == A_MOTOR) || (axis == B_MOTOR)) {
-            step_mask[axis] = step::pulse.pins[X_AXIS].mask;
-            step_mask[axis] = step::pulse.pins[Y_AXIS].mask;
+            step_mask[axis] = step::step.pins[X_AXIS].mask;
+            step_mask[axis] = step::step.pins[Y_AXIS].mask;
         }
 #else
-        step_mask[axis] = step::pulse.pins[axis].mask;
+        step_mask[axis] = step::step.pins[axis].mask;
 #endif
 
         if (bit_istrue(cycle_mask, bit(axis))) {
@@ -265,7 +265,7 @@ void limits_go_home(uint8_t cycle_mask) {
                 }
             }
 
-        } while (STEP_MASK & axislock);
+        } while (step::step.mask & axislock);
 
         st_reset();  // Immediately force kill steppers and reset step segment buffer.
         delay_ms(

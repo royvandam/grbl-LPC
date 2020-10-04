@@ -21,6 +21,7 @@
 
 #include "grbl.h"
 
+using namespace board;
 
 // Some useful constants.
 #define DT_SEGMENT (1.0/(ACCELERATION_TICKS_PER_SECOND*60.0)) // min/segment
@@ -95,12 +96,7 @@ static segment_t segment_buffer[SEGMENT_BUFFER_SIZE];
 // Stepper ISR data struct. Contains the running data for the main stepper ISR.
 typedef struct {
   // Used by the bresenham line algorithm
-  uint32_t counter_x,        // Counter variables for the bresenham line tracer
-           counter_y,
-           counter_z,
-           counter_a;
-           //counter_b,
-           //counter_c;
+  uint32_t counter[N_AXIS]; // Counter variables for the bresenham line tracer
   #ifdef STEP_PULSE_DELAY
     uint32_t step_bits;  // Stores out_bits output to complete the step pulse delay
   #endif
@@ -108,7 +104,7 @@ typedef struct {
   uint8_t execute_step;     // Flags step execution for each interrupt.
   uint32_t step_setup_time; // Delay between dir change and step pulse
   uint32_t step_pulse_time; // Step pulse width
-  uint32_t step_outbits;         // The next stepping-bits to be output
+  uint32_t step_outbits;    // The next stepping-bits to be output
   uint32_t dir_outbits;
   #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
     uint32_t steps[N_AXIS];
@@ -125,10 +121,6 @@ static stepper_t st;
 static volatile uint8_t segment_buffer_tail;
 static uint8_t segment_buffer_head;
 static uint8_t segment_next_head;
-
-// Step and direction port invert masks.
-static uint32_t step_port_invert_mask;
-static uint32_t dir_port_invert_mask;
 
 // Used to avoid ISR nesting of the "Stepper Driver Interrupt". Should never occur though.
 static volatile uint8_t busy;
@@ -216,71 +208,11 @@ static st_prep_t prep;
 // enabled. Startup init and limits call this function but shouldn't start the cycle.
 void st_wake_up()
 {
-  // Enable stepper drivers.
-  if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { STEPPERS_DISABLE_PORT |= STEPPERS_DISABLE_MASK; }
-  else { STEPPERS_DISABLE_PORT &= ~STEPPERS_DISABLE_MASK; }
-
   // Initialize stepper output bits to ensure first ISR call does not step.
-  st.step_outbits = step_port_invert_mask;
+  st.step_outbits = 0;
 
-  // Set any ports configured as open drain here
-  // https://sites.google.com/site/johnkneenmicrocontrollers/input_output/io_1768
-  // https://sites.google.com/site/johnkneenmicrocontrollers/18b-i2c/i2c_lpc1768#linkC1768
-  #ifdef OPEN_DRAIN_X
-    LPC_PINCON->PINMODE_OD2 |= 1<<0;   // Bit P2.0 is open drain Step
-    LPC_PINCON->PINMODE4 &= ~(3<<0);
-    LPC_PINCON->PINMODE4 |= (2<<0);    // P2.0 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<5;   // Bit P0.5 is open drain Dir
-    LPC_PINCON->PINMODE0 &= ~(3<<10);
-    LPC_PINCON->PINMODE0 |= (2<<10);   // P0.5 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<4;   // Bit P0.4 is open drain Enable
-    LPC_PINCON->PINMODE0 &= ~(3<<8);
-    LPC_PINCON->PINMODE0 |= (2<<8);    // P0.4 has no pull up/down resistor
-  #endif
-
-  #ifdef OPEN_DRAIN_Y
-    LPC_PINCON->PINMODE_OD2 |= 1<<1;   // Bit P2.1 is open drain Step
-    LPC_PINCON->PINMODE4 &= ~(3<<2);
-    LPC_PINCON->PINMODE4 |= (2<<2);    // P2.1 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<11;  // Bit P0.11 is open drain Dir
-    LPC_PINCON->PINMODE0 &= ~(3<<22);
-    LPC_PINCON->PINMODE0 |= (2<<22);   // P0.11 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<10;  // Bit P0.10 is open drain Enable
-    LPC_PINCON->PINMODE0 &= ~(3<<20);
-    LPC_PINCON->PINMODE0 |= (2<<20);   // P0.10 has no pull up/down resistor
-  #endif
-
-  #ifdef OPEN_DRAIN_Z
-    LPC_PINCON->PINMODE_OD2 |= 1<<2;   // Bit P2.2 is open drain Step
-    LPC_PINCON->PINMODE4 &= ~(3<<4);
-    LPC_PINCON->PINMODE4 |= (2<<4);    // P2.2 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<20;  // Bit P0.20 is open drain Dir
-    LPC_PINCON->PINMODE1 &= ~(3<<8);
-    LPC_PINCON->PINMODE1 |= (2<<8);    // P0.20 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<19;  // Bit P0.19 is open drain Enable
-    LPC_PINCON->PINMODE1 &= ~(3<<6);
-    LPC_PINCON->PINMODE1 |= (2<<6);    // P0.19 has no pull up/down resistor
-  #endif
-
-  #ifdef OPEN_DRAIN_A
-    LPC_PINCON->PINMODE_OD2 |= 1<<3;   // Bit P2.3 is open drain Step
-    LPC_PINCON->PINMODE4 &= ~(3<<6);
-    LPC_PINCON->PINMODE4 |= (2<<6);    // P2.2 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<22;  // Bit P0.22 is open drain Dir
-    LPC_PINCON->PINMODE1 &= ~(3<<12);
-    LPC_PINCON->PINMODE1 |= (2<<12);   // P0.22 has no pull up/down resistor
-
-    LPC_PINCON->PINMODE_OD0 |= 1<<21;  // Bit P0.21 is open drain Enable
-    LPC_PINCON->PINMODE1 &= ~(3<<10);
-    LPC_PINCON->PINMODE1 |= (2<<10);   // P0.21 has no pull up/down resistor
-  #endif
+  // Enable stepper drivers.
+  step::enable.write(step::enable.mask);
 
   // Initialize step pulse timing from settings. Here to ensure updating after re-writing.
   #ifdef STEP_PULSE_DELAY
@@ -299,7 +231,6 @@ void st_wake_up()
   LPC_TIM1->TCR = 0b01;   // enable Timer Control (0b10=Reset, 0b01=Enable)
 }
 
-
 // Stepper shutdown
 void st_go_idle()
 {
@@ -308,16 +239,14 @@ void st_go_idle()
   busy = false;
 
   // Set stepper driver idle state, disabled or enabled, depending on settings and circumstances.
-  bool pin_state = false; // Stepper is disabled when pin_state is true. Keep enabled by default.
   if (((settings.stepper_idle_lock_time != 0xff) || sys_rt_exec_alarm || sys.state == STATE_SLEEP) && sys.state != STATE_HOMING) {
     // Force stepper dwell to lock axes for a defined amount of time to ensure the axes come to a complete
     // stop and not drift from residual inertial forces at the end of the last movement.
     delay_ms(settings.stepper_idle_lock_time);
-    pin_state = true; // Override. Disable steppers.
+
+    // Disable step drivers
+    step::enable.write(0);
   }
-  if (bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE)) { pin_state = !pin_state; } // Apply pin invert.
-  if (pin_state) { STEPPERS_DISABLE_PORT |= STEPPERS_DISABLE_MASK; }
-  else { STEPPERS_DISABLE_PORT &= ~STEPPERS_DISABLE_MASK; }
 }
 
 
@@ -375,7 +304,7 @@ extern "C" void TIMER1_IRQHandler()
   if (busy) { return; } // The busy-flag is used to avoid reentering this interrupt
 
   // Set the direction pins a couple of nanoseconds before we step the steppers
-  DIRECTION_PORT = (DIRECTION_PORT & ~DIRECTION_MASK) | (st.dir_outbits & DIRECTION_MASK);
+  step::direction.write(st.dir_outbits);
 
   // Then pulse the stepping pins
   #ifdef STEP_PULSE_DELAY
@@ -383,7 +312,7 @@ extern "C" void TIMER1_IRQHandler()
     st.step_bits = (STEP_PORT & ~STEP_MASK) | st.step_outbits; // Store out_bits to prevent overwriting.
   #else  // Normal operation
     delay_loop(get_time(), st.step_setup_time);
-    STEP_PORT = (STEP_PORT & ~STEP_MASK) | st.step_outbits;
+    step::step.write(st.step_outbits);
     // Mark time step bits were set
     uint32_t step_start_time = get_time();
   #endif
@@ -423,18 +352,21 @@ extern "C" void TIMER1_IRQHandler()
         st.exec_block = &st_block_buffer[st.exec_block_index];
 
         // Initialize Bresenham line and distance counters
-        st.counter_x = st.counter_y = st.counter_z = (st.exec_block->step_event_count >> 1);
+        st.counter[X_AXIS] = st.counter[Y_AXIS] = st.counter[Z_AXIS] = (st.exec_block->step_event_count >> 1);
       }
-      st.dir_outbits = st.exec_block->direction_bits ^ dir_port_invert_mask;
+      st.dir_outbits = st.exec_block->direction_bits;
 
       #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
         // With AMASS enabled, adjust Bresenham axis increment counters according to AMASS level.
         st.steps[X_AXIS] = st.exec_block->steps[X_AXIS] >> st.exec_segment->amass_level;
         st.steps[Y_AXIS] = st.exec_block->steps[Y_AXIS] >> st.exec_segment->amass_level;
         st.steps[Z_AXIS] = st.exec_block->steps[Z_AXIS] >> st.exec_segment->amass_level;
-        st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
-        //st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
-        //st.steps[C_AXIS] = st.exec_block->steps[C_AXIS] >> st.exec_segment->amass_level;
+        #if (N_AXIS > 3)
+          st.steps[A_AXIS] = st.exec_block->steps[A_AXIS] >> st.exec_segment->amass_level;
+        #endif
+        #if (N_AXIS > 4)
+          st.steps[B_AXIS] = st.exec_block->steps[B_AXIS] >> st.exec_segment->amass_level;
+        #endif
       #endif
 
       #ifdef VARIABLE_SPINDLE
@@ -445,7 +377,8 @@ extern "C" void TIMER1_IRQHandler()
     } else {
       // Reset stepping pins after delay
       delay_loop(step_start_time, st.step_pulse_time);
-      STEP_PORT = (STEP_PORT & ~STEP_MASK) | (step_port_invert_mask & STEP_MASK);
+      step::step.write(0);
+
       // Segment buffer empty. Shutdown.
       st_go_idle();
       #ifdef VARIABLE_SPINDLE
@@ -465,74 +398,23 @@ extern "C" void TIMER1_IRQHandler()
   st.step_outbits = 0;
 
   // Execute step displacement profile by Bresenham line algorithm
-  #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_x += st.steps[X_AXIS];
-  #else
-    st.counter_x += st.exec_block->steps[X_AXIS];
-  #endif
-  if (st.counter_x > st.exec_block->step_event_count) {
-    st.step_outbits |= (1<<X_STEP_BIT);
-    st.counter_x -= st.exec_block->step_event_count;
-    if (st.exec_block->direction_bits & (1<<X_DIRECTION_BIT)) { sys_position[X_AXIS]--; }
-    else { sys_position[X_AXIS]++; }
+  for (uint8_t axis = 0; axis < N_AXIS; axis++) {
+    #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
+      st.counter[axis] += st.steps[axis];
+    #else
+      st.counter[axis] += st.exec_block->steps[axis];
+    #endif
+    if (st.counter[axis] > st.exec_block->step_event_count) {
+      st.step_outbits |= step::step.pins[axis].mask;
+      st.counter[axis] -= st.exec_block->step_event_count;
+      if (st.exec_block->direction_bits & step::direction.pins[axis].mask) { 
+        sys_position[axis]--;
+      } else {
+        sys_position[axis]++;
+      }
+    }
+
   }
-  #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_y += st.steps[Y_AXIS];
-  #else
-    st.counter_y += st.exec_block->steps[Y_AXIS];
-  #endif
-  if (st.counter_y > st.exec_block->step_event_count) {
-    st.step_outbits |= (1<<Y_STEP_BIT);
-    st.counter_y -= st.exec_block->step_event_count;
-    if (st.exec_block->direction_bits & (1<<Y_DIRECTION_BIT)) { sys_position[Y_AXIS]--; }
-    else { sys_position[Y_AXIS]++; }
-  }
-  #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_z += st.steps[Z_AXIS];
-  #else
-    st.counter_z += st.exec_block->steps[Z_AXIS];
-  #endif
-  if (st.counter_z > st.exec_block->step_event_count) {
-    st.step_outbits |= (1<<Z_STEP_BIT);
-    st.counter_z -= st.exec_block->step_event_count;
-    if (st.exec_block->direction_bits & (1<<Z_DIRECTION_BIT)) { sys_position[Z_AXIS]--; }
-    else { sys_position[Z_AXIS]++; }
-  }
-  #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_a += st.steps[A_AXIS];
-  #else
-    st.counter_a += st.exec_block->steps[A_AXIS];
-  #endif
-  if (st.counter_a > st.exec_block->step_event_count) {
-    st.step_outbits |= (1<<A_STEP_BIT);
-    st.counter_a -= st.exec_block->step_event_count;
-    if (st.exec_block->direction_bits & (1<<A_DIRECTION_BIT)) { sys_position[A_AXIS]--; }
-    else { sys_position[A_AXIS]++; }
-  }
-/*
-  #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_b += st.steps[B_AXIS];
-  #else
-    st.counter_b += st.exec_block->steps[B_AXIS];
-  #endif
-  if (st.counter_b > st.exec_block->step_event_count) {
-    st.step_outbits |= (1<<B_STEP_BIT);
-    st.counter_b -= st.exec_block->step_event_count;
-    if (st.exec_block->direction_bits & (1<<B_DIRECTION_BIT)) { sys_position[B_AXIS]--; }
-    else { sys_position[B_AXIS]++; }
-  }
-  #ifdef ADAPTIVE_MULTI_AXIS_STEP_SMOOTHING
-    st.counter_c += st.steps[C_AXIS];
-  #else
-    st.counter_c += st.exec_block->steps[C_AXIS];
-  #endif
-  if (st.counter_c > st.exec_block->step_event_count) {
-    st.step_outbits |= (1<<C_STEP_BIT);
-    st.counter_c -= st.exec_block->step_event_count;
-    if (st.exec_block->direction_bits & (1<<C_DIRECTION_BIT)) { sys_position[C_AXIS]--; }
-    else { sys_position[C_AXIS]++; }
-  }
-*/
 
   // During a homing cycle, lock out and prevent desired axes from moving.
   if (sys.state == STATE_HOMING) { st.step_outbits &= sys.homing_axis_lock; }
@@ -544,11 +426,9 @@ extern "C" void TIMER1_IRQHandler()
     if ( ++segment_buffer_tail == SEGMENT_BUFFER_SIZE) { segment_buffer_tail = 0; }
   }
 
-  st.step_outbits ^= step_port_invert_mask;  // Apply step port invert mask
-
   // Reset stepping pins after delay
   delay_loop(step_start_time, st.step_pulse_time);
-  STEP_PORT = (STEP_PORT & ~STEP_MASK) | (step_port_invert_mask & STEP_MASK);
+  step::step.write(0);
 
   busy = false;
 }
@@ -586,20 +466,6 @@ ISR(TIMER0_OVF_vect)
 #endif
 */
 
-
-// Generates the step and direction port invert masks used in the Stepper Interrupt Driver.
-void st_generate_step_dir_invert_masks()
-{
-  uint8_t idx;
-  step_port_invert_mask = 0;
-  dir_port_invert_mask = 0;
-  for (idx=0; idx<N_AXIS; idx++) {
-    if (bit_istrue(settings.step_invert_mask,bit(idx))) { step_port_invert_mask |= get_step_pin_mask(idx); }
-    if (bit_istrue(settings.dir_invert_mask,bit(idx))) { dir_port_invert_mask |= get_direction_pin_mask(idx); }
-  }
-}
-
-
 // Reset and clear stepper subsystem variables
 void st_reset()
 {
@@ -616,22 +482,20 @@ void st_reset()
   segment_next_head = 1;
   busy = false;
 
-  st_generate_step_dir_invert_masks();
-  st.dir_outbits = dir_port_invert_mask; // Initialize direction bits to default.
+  st.dir_outbits = 0; // Initialize direction bits to default.
 
   // Initialize step and direction port pins.
-  STEP_PORT = (STEP_PORT & ~STEP_MASK) | step_port_invert_mask;
-  DIRECTION_PORT = (DIRECTION_PORT & ~DIRECTION_MASK) | dir_port_invert_mask;
+  step::step.write(0);
+  step::direction.write(0);
 }
 
 
 // Initialize and start the stepper motor subsystem
 void stepper_init()
 {
-  // Configure step and direction interface pins
-  STEP_DDR |= STEP_MASK;                         // Set selected stepper step pins as outputs
-  STEPPERS_DISABLE_DDR |= STEPPERS_DISABLE_MASK; // Set selected stepper disable pins as outputs
-  DIRECTION_DDR |= DIRECTION_MASK;               // Set selected stepper direction pins as outputs
+  step::step.init();
+  step::direction.init();
+  step::enable.init();
 
   // Configure Timer 1: Stepper Driver Interrupt
   LPC_TIM1->TCR = 0;            // disable Timer Control (0b10=Reset, 0b01=Enable)

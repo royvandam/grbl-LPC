@@ -80,8 +80,6 @@ void settings_restore(uint8_t restore_flag) {
   if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
     settings.pulse_microseconds = DEFAULT_STEP_PULSE_MICROSECONDS;
     settings.stepper_idle_lock_time = DEFAULT_STEPPER_IDLE_LOCK_TIME;
-    settings.step_invert_mask = DEFAULT_STEPPING_INVERT_MASK;
-    settings.dir_invert_mask = DEFAULT_DIRECTION_INVERT_MASK;
     settings.status_report_mask = DEFAULT_STATUS_REPORT_MASK;
     settings.junction_deviation = DEFAULT_JUNCTION_DEVIATION;
     settings.arc_tolerance = DEFAULT_ARC_TOLERANCE;
@@ -102,7 +100,6 @@ void settings_restore(uint8_t restore_flag) {
     settings.flags = 0;
     if (DEFAULT_REPORT_INCHES)     { settings.flags |= BITFLAG_REPORT_INCHES;     }
     if (DEFAULT_LASER_MODE)        { settings.flags |= BITFLAG_LASER_MODE;        }
-    if (DEFAULT_INVERT_ST_ENABLE)  { settings.flags |= BITFLAG_INVERT_ST_ENABLE;  }
     if (DEFAULT_HARD_LIMIT_ENABLE) { settings.flags |= BITFLAG_HARD_LIMIT_ENABLE; }
     if (DEFAULT_HOMING_ENABLE)     { settings.flags |= BITFLAG_HOMING_ENABLE;     }
     if (DEFAULT_SOFT_LIMIT_ENABLE) { settings.flags |= BITFLAG_SOFT_LIMIT_ENABLE; }
@@ -272,18 +269,6 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         if (int_value < 3) { return(STATUS_SETTING_STEP_PULSE_MIN); }
         settings.pulse_microseconds = int_value; break;
       case 1: settings.stepper_idle_lock_time = int_value; break;
-      case 2:
-        settings.step_invert_mask = int_value;
-        st_generate_step_dir_invert_masks(); // Regenerate step and direction port invert masks.
-        break;
-      case 3:
-        settings.dir_invert_mask = int_value;
-        st_generate_step_dir_invert_masks(); // Regenerate step and direction port invert masks.
-        break;
-      case 4: // Reset to ensure change. Immediate re-init may cause problems.
-        if (int_value) { settings.flags |= BITFLAG_INVERT_ST_ENABLE; }
-        else { settings.flags &= ~BITFLAG_INVERT_ST_ENABLE; }
-        break;
       case 10: settings.status_report_mask = int_value; break;
       case 11: settings.junction_deviation = value; break;
       case 12: settings.arc_tolerance = value; break;
@@ -346,31 +331,4 @@ void settings_init() {
     report_grbl_settings();
   }
 }
-
-
-// Returns step pin mask according to Grbl internal axis indexing.
-uint32_t get_step_pin_mask(uint8_t axis_idx)
-{
-  if ( axis_idx == X_AXIS ) { return((1<<X_STEP_BIT)); }
-  if ( axis_idx == Y_AXIS ) { return((1<<Y_STEP_BIT)); }
-  if ( axis_idx == Z_AXIS ) { return((1<<Z_STEP_BIT)); }
-  return((1<<A_STEP_BIT));
-  //if ( axis_idx == A_AXIS ) { return((1<<A_STEP_BIT)); }
-  //if ( axis_idx == B_AXIS ) { return((1<<B_STEP_BIT)); }
-  //return((1<<C_STEP_BIT));
-}
-
-
-// Returns direction pin mask according to Grbl internal axis indexing.
-uint32_t get_direction_pin_mask(uint8_t axis_idx)
-{
-  if ( axis_idx == X_AXIS ) { return((1<<X_DIRECTION_BIT)); }
-  if ( axis_idx == Y_AXIS ) { return((1<<Y_DIRECTION_BIT)); }
-  if ( axis_idx == Z_AXIS ) { return((1<<Z_DIRECTION_BIT)); }
-  return((1<<A_DIRECTION_BIT));
-  //if ( axis_idx == A_AXIS ) { return((1<<A_DIRECTION_BIT)); }
-  //if ( axis_idx == B_AXIS ) { return((1<<B_DIRECTION_BIT)); }
-  //return((1<<C_DIRECTION_BIT));
-}
-
 
