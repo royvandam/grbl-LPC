@@ -55,9 +55,9 @@
   #define DEFAULT_STEPPER_IDLE_LOCK_TIME 255  // $1  msec (0-254, 255 keeps steppers enabled)
   #define DEFAULT_STEPPING_INVERT_MASK 7     // $2  ZYX (e.g., 0x5 inverts Z and X stepper pulses)
   #define DEFAULT_DIRECTION_INVERT_MASK 7    // $3  ZYX (e.g., 0x2 inverts Y stepper direction)
-  #define DEFAULT_INVERT_ST_ENABLE 1         // $4  bool (inverts stepper enable pin)
-  #define DEFAULT_INVERT_LIMIT_PINS 1        // $5  bool (inverts limit switches to trigger on high)
-  #define DEFAULT_INVERT_PROBE_PIN 1         // $6  bool (inverts probe to trigger on high)
+  #define DEFAULT_INVERT_ST_ENABLE 0         // $4  bool (inverts stepper enable pin)
+  #define DEFAULT_INVERT_LIMIT_PINS 0        // $5  bool (inverts limit switches to trigger on high)
+  #define DEFAULT_INVERT_PROBE_PIN 0         // $6  bool (inverts probe to trigger on high)
   #define DEFAULT_STATUS_REPORT_MASK 0       // $10 bits (Reports: [0=WPos or 1=MPos] and [2=Buffer])
   #define DEFAULT_JUNCTION_DEVIATION 0.01    // $11 mm (determines machine speed through corners)
   #define DEFAULT_ARC_TOLERANCE 0.002        // $12 mm (error tolerance on arcs/cicles)
@@ -77,8 +77,6 @@
   #define DEFAULT_SPINDLE_PWM_OFF_VALUE 1    // $34 % (% of PWM when spindle is off)
   #define DEFAULT_SPINDLE_PWM_MIN_VALUE 1    // $35 % (% of PWM when spindle is at lowest setting)
   #define DEFAULT_SPINDLE_PWM_MAX_VALUE 100  // $36 % (% of PWM when spindle is at highest setting)
-  // Up to 4 HOMING_CYCLE_x can be defined (0-3), specifying which axes are homed and in which order
-  #define HOMING_CYCLE_0 ((1<<X_AXIS)|(1<<Y_AXIS))
 #endif // end of DEFAULTS_GENERIC
 
 #endif

@@ -175,7 +175,7 @@ struct Bus : Detail::Bus {
      * @param port Port number
      * @param pins Initializer list of constexpr pin instances.
      */
-    constexpr Bus(uint32_t port, std::array<Pin, N> pins)
+    constexpr Bus(uint8_t port, std::array<Pin, N> pins)
         : Detail::Bus{port, 0, 0}
         , pins(pins)
     {

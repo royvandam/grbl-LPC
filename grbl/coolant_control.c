@@ -21,18 +21,6 @@
 
 #include "grbl.h"
 
-#ifdef INVERT_COOLANT_FLOOD_PIN
-constexpr static bool invert_flood_pin = true;
-#else
-constexpr static bool invert_flood_pin = false;
-#endif
-
-#ifdef INVERT_COOLANT_MIST_PIN
-constexpr static bool invert_mist_pin = true;
-#else
-constexpr static bool invert_mist_pin = false;
-#endif
-
 using namespace board;
 
 void coolant_init() {
@@ -49,12 +37,12 @@ uint8_t
 coolant_get_state() {
     uint8_t cl_state = COOLANT_STATE_DISABLE;
 
-    if (coolant::flood.get() ^ invert_flood_pin) {
+    if (coolant::flood.get()) {
         cl_state |= COOLANT_STATE_FLOOD;
     }
 
 #ifdef ENABLE_M7
-    if (coolant::mist.get() ^ invert_mist_pin) {
+    if (coolant::mist.get()) {
         cl_state |= COOLANT_STATE_MIST;
     }
 #endif
@@ -65,9 +53,9 @@ coolant_get_state() {
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at
 // an interrupt-level. No report flag set, but only called by routines that don't need it.
 void coolant_stop() {
-    coolant::flood.set(false ^ invert_flood_pin);
+    coolant::flood.set(false);
 #ifdef ENABLE_M7
-    coolant::mist.set(false ^ invert_mist_pin);
+    coolant::mist.set(false);
 #endif
 }
 
@@ -85,12 +73,12 @@ void coolant_set_state(uint8_t mode) {
         coolant_stop();
     } else {
         if (mode & COOLANT_FLOOD_ENABLE) {
-            coolant::flood.set(true ^ invert_flood_pin);
+            coolant::flood.set(true);
         }
 
 #ifdef ENABLE_M7
         if (mode & COOLANT_MIST_ENABLE) {
-            coolant::mist.set(true ^ invert_mist_pin);
+            coolant::mist.set(true);
         }
 #endif
     }

@@ -36,8 +36,6 @@
 #define BITFLAG_HARD_LIMIT_ENABLE  bit(3)
 #define BITFLAG_HOMING_ENABLE      bit(4)
 #define BITFLAG_SOFT_LIMIT_ENABLE  bit(5)
-#define BITFLAG_INVERT_LIMIT_PINS  bit(6)
-#define BITFLAG_INVERT_PROBE_PIN   bit(7)
 
 // Define status reporting boolean enable bit flags in settings.status_report_mask
 #define BITFLAG_RT_STATUS_POSITION_TYPE     bit(0)
@@ -142,9 +140,6 @@ uint32_t get_step_pin_mask(uint8_t i);
 
 // Returns the direction pin mask according to Grbl's internal axis numbering
 uint32_t get_direction_pin_mask(uint8_t i);
-
-// Returns the limit pin mask according to Grbl's internal axis numbering
-uint32_t get_limit_pin_mask(uint8_t i);
 
 
 #endif

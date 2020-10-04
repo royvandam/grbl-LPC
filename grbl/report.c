@@ -187,8 +187,6 @@ void report_grbl_settings() {
   report_util_uint8_setting(2,settings.step_invert_mask);
   report_util_uint8_setting(3,settings.dir_invert_mask);
   report_util_uint8_setting(4,bit_istrue(settings.flags,BITFLAG_INVERT_ST_ENABLE));
-  report_util_uint8_setting(5,bit_istrue(settings.flags,BITFLAG_INVERT_LIMIT_PINS));
-  report_util_uint8_setting(6,bit_istrue(settings.flags,BITFLAG_INVERT_PROBE_PIN));
   report_util_uint8_setting(10,settings.status_report_mask);
   report_util_float_setting(11,settings.junction_deviation,N_DECIMAL_SETTINGVALUE);
   report_util_float_setting(12,settings.arc_tolerance,N_DECIMAL_SETTINGVALUE);
@@ -404,9 +402,6 @@ void report_build_info(char *line)
   #endif
   #ifdef ALLOW_FEED_OVERRIDE_DURING_PROBE_CYCLES
     serial_write('A');
-  #endif
-  #ifdef ENABLE_SOFTWARE_DEBOUNCE
-    serial_write('S');
   #endif
   #ifdef ENABLE_PARKING_OVERRIDE_CONTROL
     serial_write('R');

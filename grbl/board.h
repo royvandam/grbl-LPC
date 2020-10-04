@@ -21,6 +21,7 @@
 // IN THE SOFTWARE
 
 #include <gpio.h>
+#include <config.h>
 
 namespace board {
 
@@ -36,49 +37,55 @@ constexpr static GPIO::Pin leds[] = {
 
 // Define step related pins.
 // NOTE: All pins within a bus must be on the same port.
+// NOTE: The order is crucial, must be XYZA!
 namespace step {
     // Define step pulse output pins. 
-    constexpr static GPIO::Bus<4> pulse(0, {
+    constexpr static GPIO::Bus<N_AXIS> pulse(0, {
         GPIO::Pin(0, 0, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 1, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
         GPIO::Pin(0, 2, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
-        GPIO::Pin(0, 3, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+        // GPIO::Pin(0, 3, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
     });
 
     // Define step direction output pins.
-    constexpr static GPIO::Bus<4> direction(0, {
+    constexpr static GPIO::Bus<N_AXIS> direction(0, {
         GPIO::Pin(0,  5, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 11, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
         GPIO::Pin(0, 20, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
-        GPIO::Pin(0, 22, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+        // GPIO::Pin(0, 22, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
     });
 
     // Define stepper driver enable/disable output pins.
-    constexpr static GPIO::Bus<4> enable(0, {
+    constexpr static GPIO::Bus<N_AXIS> enable(0, {
         GPIO::Pin(0,  4, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 10, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
         GPIO::Pin(0, 19, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
-        GPIO::Pin(0, 21, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+        // GPIO::Pin(0, 21, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
     });
-}
-
-constexpr static GPIO::Pin probe(1, 30, GPIO::Direction::Input, GPIO::Pull::Up);
-
-namespace spindle {
-    constexpr static GPIO::Pin enable(2, 7, GPIO::Direction::Output);
-    constexpr static GPIO::Pin direction(1, 22, GPIO::Direction::Output);
 }
 
 // Define homing/hard limit switch input pins 
 // NOTE: All limit bit pins must be on the same port
-constexpr static GPIO::Bus<6> limits(1, {
-    GPIO::Pin(1, 24, GPIO::Direction::Input, GPIO::Pull::Up), // X Min
-    GPIO::Pin(1, 25, GPIO::Direction::Input, GPIO::Pull::Up), // X Max
-    GPIO::Pin(1, 26, GPIO::Direction::Input, GPIO::Pull::Up), // Y Min
-    GPIO::Pin(1, 27, GPIO::Direction::Input, GPIO::Pull::Up), // Y Max
-    GPIO::Pin(1, 28, GPIO::Direction::Input, GPIO::Pull::Up), // Z Min
-    GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up)  // Z Max
+// NOTE: The order is crucial, must be XYZA!
+constexpr static GPIO::Bus<N_AXIS * 2> limit(1, {
+    GPIO::Pin(1, 24, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // X Min
+    GPIO::Pin(1, 25, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // X Max
+
+    GPIO::Pin(1, 26, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // Y Min
+    GPIO::Pin(1, 27, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // Y Max
+
+    GPIO::Pin(1, 28, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // Z Min
+    GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up, false, true)  // Z Max
 }); 
+
+// Define probe input pin
+constexpr static GPIO::Pin probe(1, 30, GPIO::Direction::Input, GPIO::Pull::Up, true, true);
+
+// Define spindle control output pins
+namespace spindle {
+    constexpr static GPIO::Pin enable(2, 7, GPIO::Direction::Output);
+    constexpr static GPIO::Pin direction(1, 22, GPIO::Direction::Output);
+}
 
 // Define flood and mist coolant enable output pins.
 namespace coolant {
@@ -111,15 +118,6 @@ namespace coolant {
 #define Z_DISABLE_BIT           19
 #define A_DISABLE_BIT           21
 #define STEPPERS_DISABLE_MASK   ((1<<X_DISABLE_BIT)|(1<<Y_DISABLE_BIT)|(1<<Z_DISABLE_BIT)|(1<<A_DISABLE_BIT))
-
-#define LIMIT_DDR         LPC_GPIO1->FIODIR
-#define LIMIT_PIN         LPC_GPIO1->FIOPIN
-#define LIMIT_PORT        LPC_GPIO1->FIOPIN
-#define X_LIMIT_BIT       24  // X-MIN=24, X-MAX=25
-#define Y_LIMIT_BIT       26  // Y-MIN=26, Y-MAX=27
-#define Z_LIMIT_BIT	      28  // Z-MIN=28, Z-MAX=29
-#define A_LIMIT_BIT       29  // reuse Z-MAX (P1.29)
-#define LIMIT_MASK       ((1<<X_LIMIT_BIT)|(1<<Y_LIMIT_BIT)|(1<<Z_LIMIT_BIT)|(1<<A_LIMIT_BIT)) // All limit bits
 
 // The LPC17xx has 6 PWM channels. Each channel has 2 pins. It can drive both pins simultaneously to the same value.
 //

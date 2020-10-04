@@ -106,8 +106,6 @@ void settings_restore(uint8_t restore_flag) {
     if (DEFAULT_HARD_LIMIT_ENABLE) { settings.flags |= BITFLAG_HARD_LIMIT_ENABLE; }
     if (DEFAULT_HOMING_ENABLE)     { settings.flags |= BITFLAG_HOMING_ENABLE;     }
     if (DEFAULT_SOFT_LIMIT_ENABLE) { settings.flags |= BITFLAG_SOFT_LIMIT_ENABLE; }
-    if (DEFAULT_INVERT_LIMIT_PINS) { settings.flags |= BITFLAG_INVERT_LIMIT_PINS; }
-    if (DEFAULT_INVERT_PROBE_PIN)  { settings.flags |= BITFLAG_INVERT_PROBE_PIN;  }
 
     settings.steps_per_mm[X_AXIS] = DEFAULT_X_STEPS_PER_MM;
     settings.steps_per_mm[Y_AXIS] = DEFAULT_Y_STEPS_PER_MM;
@@ -286,15 +284,6 @@ uint8_t settings_store_global_setting(uint8_t parameter, float value) {
         if (int_value) { settings.flags |= BITFLAG_INVERT_ST_ENABLE; }
         else { settings.flags &= ~BITFLAG_INVERT_ST_ENABLE; }
         break;
-      case 5: // Reset to ensure change. Immediate re-init may cause problems.
-        if (int_value) { settings.flags |= BITFLAG_INVERT_LIMIT_PINS; }
-        else { settings.flags &= ~BITFLAG_INVERT_LIMIT_PINS; }
-        break;
-      case 6: // Reset to ensure change. Immediate re-init may cause problems.
-        if (int_value) { settings.flags |= BITFLAG_INVERT_PROBE_PIN; }
-        else { settings.flags &= ~BITFLAG_INVERT_PROBE_PIN; }
-        probe_configure_invert(false);
-        break;
       case 10: settings.status_report_mask = int_value; break;
       case 11: settings.junction_deviation = value; break;
       case 12: settings.arc_tolerance = value; break;
@@ -385,14 +374,3 @@ uint32_t get_direction_pin_mask(uint8_t axis_idx)
 }
 
 
-// Returns limit pin mask according to Grbl internal axis indexing.
-uint32_t get_limit_pin_mask(uint8_t axis_idx)
-{
-  if ( axis_idx == X_AXIS ) { return((1<<X_LIMIT_BIT)); }
-  if ( axis_idx == Y_AXIS ) { return((1<<Y_LIMIT_BIT)); }
-  if ( axis_idx == Z_AXIS ) { return((1<<Z_LIMIT_BIT)); }
-  return((1<<A_LIMIT_BIT));
-  //if ( axis_idx == A_AXIS ) { return((1<<A_LIMIT_BIT)); }
-  //if ( axis_idx == B_AXIS ) { return((1<<B_LIMIT_BIT)); }
-  //return((1<<C_LIMIT_BIT));
-}

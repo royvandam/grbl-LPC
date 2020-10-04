@@ -25,12 +25,6 @@
 
 using namespace board;
 
-#ifdef INVERT_SPINDLE_ENABLE_PIN
-const static bool invert_spindle_enable = true;
-#else
-const static bool invert_spindle_enable = false;
-#endif
-
 #ifdef VARIABLE_SPINDLE
   static float pwm_gradient; // Precalculated value to speed up rpm to PWM conversions.
   float spindle_pwm_period;
@@ -61,9 +55,9 @@ bool spindle_get_enabled() {
 	#ifdef VARIABLE_SPINDLE
     // TODO(roda): use PWM driver instead of enable pin
     // Check if PWM is enabled
-    return (spindle::enable.get() ^ invert_spindle_enable);
+    return spindle::enable.get();
   #else
-    return (spindle::enable.get() ^ invert_spindle_enable);
+    return spindle::enable.get();
   #endif
 }
 
@@ -87,7 +81,7 @@ void spindle_stop()
   #ifdef VARIABLE_SPINDLE
     pwm_set_width(&SPINDLE_PWM_CHANNEL, 0);
   #endif
-  spindle::enable.set(false ^ invert_spindle_enable);
+  spindle::enable.set(false);
 }
 
 #ifdef VARIABLE_SPINDLE
@@ -157,8 +151,7 @@ void spindle_stop()
 #endif
 
       spindle::direction = (state == SPINDLE_ENABLE_CCW);
-      spindle::enable = true ^ invert_spindle_enable;
-      leds[0] = true;
+      spindle::enable = true;
       break;
   }
   

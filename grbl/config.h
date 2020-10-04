@@ -27,17 +27,12 @@
 
 #ifndef config_h
 #define config_h
-#include "grbl.h" // For Arduino IDE compatibility.
-#include "LPC17xx.h"
 
 // Define machine type for machine specific defaults
 #define DEFAULTS_GENERIC
-//#define DEFAULTS_K40
-//#define DEFAULTS_FABKIT
-//#define DEFAULTS_JONAS
 
 // Define the numer of axes
-#define N_AXIS 4 
+#define N_AXIS 3 
 
 // Serial baud rate
 // #define BAUD_RATE 230400
@@ -105,8 +100,8 @@
 // will not be affected by pin sharing.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
 // NOTE: Homing cycle pattern is defined in Machine defaults!!!
-// #define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
-// #define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // OPTIONAL: Then move X,Y at the same time.
+#define HOMING_CYCLE_0 (1<<Z_AXIS)                // REQUIRED: First move Z to clear workspace.
+#define HOMING_CYCLE_1 ((1<<X_AXIS)|(1<<Y_AXIS))  // OPTIONAL: Then move X,Y at the same time.
 // #define HOMING_CYCLE_2                         // OPTIONAL: Uncomment and add axes mask to enable
 
 // NOTE: The following are two examples to setup homing for 2-axis machines.
@@ -118,7 +113,7 @@
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This helps in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
-#define N_HOMING_LOCATE_CYCLE 1 // Integer (1-128)
+#define N_HOMING_LOCATE_CYCLE 2 // Integer (1-128)
 
 // Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing 
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address
@@ -195,26 +190,6 @@
 // inverting only two control pins, the safety door and reset. See board.h for other bit definitions.
 // #define INVERT_CONTROL_PIN_MASK CONTROL_MASK // Default disabled. Uncomment to disable.
 // #define INVERT_CONTROL_PIN_MASK ((1<<CONTROL_SAFETY_DOOR_BIT)|(CONTROL_RESET_BIT)) // Default disabled.
-
-// Inverts select limit pin states based on the following mask. This effects all limit pin functions,
-// such as hard limits and homing. However, this is different from overall invert limits setting.
-// This build option will invert only the limit pins defined here, and then the invert limits setting
-// will be applied to all of them. This is useful when a user has a mixed set of limit pins with both
-// normally-open(NO) and normally-closed(NC) switches installed on their machine.
-// NOTE: PLEASE DO NOT USE THIS, unless you have a situation that needs it.
-// #define INVERT_LIMIT_PIN_MASK ((1<<X_LIMIT_BIT)|(1<<Y_LIMIT_BIT)) // Default disabled. Uncomment to enable.
-
-// Inverts the spindle enable pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
-// for some pre-built electronic boards.
-// NOTE: If VARIABLE_SPINDLE is enabled(default), this option has no effect as the PWM output and
-// spindle enable are combined to one pin. If you need both this option and spindle speed PWM,
-// uncomment the config option USE_SPINDLE_DIR_AS_ENABLE_PIN below.
-//#define INVERT_SPINDLE_ENABLE_PIN // Default disabled. Uncomment to enable.
-
-// Inverts the selected coolant pin from low-disabled/high-enabled to low-enabled/high-disabled. Useful
-// for some pre-built electronic boards.
-// #define INVERT_COOLANT_FLOOD_PIN // Default disabled. Uncomment to enable.
-// #define INVERT_COOLANT_MIST_PIN // Default disabled. Note: Enable M7 mist coolant in config.h
 
 // Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
 // analog pin 4. Only use this option if you require a second coolant control pin.
@@ -484,15 +459,6 @@
 // will continue operating efficiently. Size the TX buffer around the size of a worst-case report.
 #define RX_BUFFER_SIZE 8192 // Uncomment to override defaults in serial.h
 // not ported #define TX_BUFFER_SIZE 100 // (1-254)
-
-// A simple software debouncing feature for hard limit switches. When enabled, the interrupt 
-// monitoring the hard limit switch pins will enable the Arduino's watchdog timer to re-check 
-// the limit pin state after a delay of about 32msec. This can help with CNC machines with 
-// problematic false triggering of their hard limit switches, but it WILL NOT fix issues with 
-// electrical interference on the signal cables from external sources. It's recommended to first
-// use shielded signal cables with their shielding connected to ground (old USB/computer cables 
-// work well and are cheap to find) and wire in a low-pass circuit into each limit pin.
-// #define ENABLE_SOFTWARE_DEBOUNCE // Default disabled. Uncomment to enable.
 
 // Configures the position after a probing cycle during Grbl's check mode. Disabled sets
 // the position to the probe target, when enabled sets the position to the start position.

@@ -20,43 +20,38 @@
 
 #include "grbl.h"
 
-// Inverts the probe pin state depending on user settings and probing cycle mode.
-bool invert_probe_pin;
+using namespace board;
+
+// Inverts the probe pin state depending on the probing cycle mode.
+bool probe_away_enabled;
 
 // Probe pin initialization routine.
 void probe_init() {
-  // Initialize GPIO pin
-  board::probe.init();
+    // Initialize GPIO pin
+    probe.init();
 
-  // Reset probe inversion
-  probe_configure_invert(false);
+    // Reset probe away state
+    probe_away_enabled = false;
 }
 
-// Called by probe_init() and the mc_probe() routines. Sets up the probe pin invert mask to
-// appropriately set the pin logic according to setting for normal-high/normal-low operation
-// and the probing cycle modes for toward-workpiece/away-from-workpiece.
-void probe_configure_invert(uint8_t is_probe_away)
-{
-  invert_probe_pin = bit_istrue(settings.flags, BITFLAG_INVERT_PROBE_PIN);
-
-  if (is_probe_away) {
-      invert_probe_pin = !invert_probe_pin;
-  }
+// Called by the mc_probe() routines. Sets up the probe pin invert mask
+// the probing cycle modes for toward-workpiece/away-from-workpiece.
+void probe_configure_away(uint8_t enabled) {
+    probe_away_enabled = enabled;
 }
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
-uint8_t probe_get_state() { 
-	return board::probe.get() ^ invert_probe_pin;
+uint8_t probe_get_state() {
+    return probe.get() ^ probe_away_enabled;
 }
 
 // Monitors probe pin state and records the system position when detected.
 // Called by the stepper ISR per ISR tick.
 // NOTE: This function must be extremely efficient as to not bog down the stepper ISR.
-void probe_state_monitor()
-{
-  if (probe_get_state()) {
-    sys_probe_state = PROBE_OFF;
-    memcpy(sys_probe_position, sys_position, sizeof(sys_position));
-    bit_true(sys_rt_exec_state, EXEC_MOTION_CANCEL);
-  }
+void probe_state_monitor() {
+    if (probe_get_state()) {
+        sys_probe_state = PROBE_OFF;
+        memcpy(sys_probe_position, sys_position, sizeof(sys_position));
+        bit_true(sys_rt_exec_state, EXEC_MOTION_CANCEL);
+    }
 }

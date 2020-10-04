@@ -200,7 +200,6 @@ void mc_homing_cycle(uint8_t cycle_mask)
 {
   // Check and abort homing cycle, if hard limits are already enabled. Helps prevent problems
   // with machines with limits wired on both ends of travel to one limit pin.
-  // TODO: Move the pin-specific LIMIT_PIN call to limits.c as a function.
   #ifdef LIMITS_TWO_SWITCHES_ON_AXES
     if (limits_get_state()) {
       mc_reset(); // Issue system reset and ensure spindle and coolant are shutdown.
@@ -262,14 +261,14 @@ uint8_t mc_probe_cycle(float *target, plan_line_data_t *pl_data, uint8_t parser_
   uint8_t is_probe_away = bit_istrue(parser_flags,GC_PARSER_PROBE_IS_AWAY);
   uint8_t is_no_error = bit_istrue(parser_flags,GC_PARSER_PROBE_IS_NO_ERROR);
   sys.probe_succeeded = false; // Re-initialize probe history before beginning cycle.
-  probe_configure_invert(is_probe_away);
+  probe_configure_away(is_probe_away);
 
   // After syncing, check if probe is already triggered. If so, halt and issue alarm.
   // NOTE: This probe initialization error applies to all probing cycles.
   if ( probe_get_state() ) { // Check probe pin state.
     system_set_exec_alarm(EXEC_ALARM_PROBE_FAIL_INITIAL);
     protocol_execute_realtime();
-    probe_configure_invert(false); // Re-initialize invert mask before returning.
+    probe_configure_away(false); // Re-initialize invert mask before returning.
     return(GC_PROBE_FAIL_INIT); // Nothing else to do but bail.
   }
 
@@ -296,7 +295,7 @@ uint8_t mc_probe_cycle(float *target, plan_line_data_t *pl_data, uint8_t parser_
     sys.probe_succeeded = true; // Indicate to system the probing cycle completed successfully.
   }
   sys_probe_state = PROBE_OFF; // Ensure probe state monitor is disabled.
-  probe_configure_invert(false); // Re-initialize invert mask.
+  probe_configure_away(false); // Re-initialize invert mask.
   protocol_execute_realtime();   // Check and execute run-time commands
 
   // Reset the stepper and planner buffers to remove the remainder of the probe motion.
