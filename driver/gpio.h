@@ -35,56 +35,132 @@ enum struct Pull : uint32_t {
 };
 
 struct Pin {
-    uint32_t port;
-    uint32_t index;
+    uint8_t port;
+    uint8_t index;
     uint32_t mask;
 
     struct Config {
         Direction direction;
         Pull pull;
         bool open_drain;
-        uint32_t init_val;
+        bool inverted;
+        uint32_t value;
     } config;
 
-    constexpr Pin(uint32_t port, uint32_t index,
+    /**
+     * @brief Constexpr constructor allowing to define a pin and its
+     * configuration during compile-time.
+     * @param port Port number
+     * @param index Pin number
+     * @param direction Pin direction {Input, Output}
+     * @param pull Pin pull mode {None Up, Down}
+     * @param open_drain Configure pin as open-drain output
+     * @param inverted Set pin logical state as inverted
+     * @param value Initial configuration value
+     */
+    constexpr Pin(uint8_t port, uint8_t index,
         Direction direction = Direction::Input,
         Pull pull = Pull::Up,
         bool open_drain = false,
-        uint32_t init_val = 0UL
+        bool inverted = false,
+        uint32_t value = 0UL
     )
         : port(port)
         , index(index)
         , mask(1 << index)
         , config({
             direction, pull,
-            open_drain, init_val
+            open_drain, inverted,
+            value
         })
     {}
 
+    /**
+     * @brief Runtime initialisation of the pin based on the compile-time
+     * defined configuration
+     */
     void init() const;
 
+    /**
+     * @brief Runtime configuration of the pin pull mode.
+     * NOTE: The compile-time defined configuration is not updated.
+     * @param pull Pin pull mode {None Up, Down}
+     */
     void set_pull(Pull pull) const;
+
+    /**
+     * @brief Runtime configuration of the pin direction.
+     * NOTE: The compile-time defined configuration is not updated.
+     * @param direction Pin direction {Input, Output}
+     */
     void set_direction(Direction direction) const;
+
+    /**
+     * @brief Runtime configuration of the pin open drain mode.
+     * NOTE: The compile-time defined configuration is not updated.
+     * @param open_drain Configure pin as open-drain output
+     */
     void set_open_drain(bool enabled) const;
 
+    /**
+     * @brief Returns the logical state of the pin.
+     * @return Pin logical state
+     */
     uint32_t get() const;
+
+    /**
+     * @brief Set logical state of the pin.
+     * @param value Pin logical state
+     */
     void set(uint32_t value) const;
+
+    /**
+     * @brief Invert the current logical state of the pin
+     */
     void toggle() const;
 
-    const Pin& operator=(uint32_t value) const;
+    /**
+     * @brief Returns the logical state of the pin.
+     * @return Pin logical state
+     */
     operator uint32_t() const;
+
+    /**
+     * @brief Set logical state of the pin.
+     * @param value Pin logical state
+     */
+    const Pin& operator=(uint32_t value) const;
 };
 
 namespace Detail {
     struct Bus {
+        uint8_t port;
         uint32_t mask;
-        uint32_t port;
+        uint32_t invert_mask;
 
-        void write(uint32_t value) const;
+        /**
+         * @brief Returns the logical state of the pins in the bus.
+         * @return Bus logical state
+         */
         uint32_t read() const;
 
-        const Bus& operator=(uint32_t value) const;
+        /**
+         * @brief Returns the logical state of the pins in the bus.
+         * @return Bus logical state
+         */
         operator uint32_t() const;
+
+        /**
+         * @brief Set logical state of the pins in the bus.
+         * @param value Bus logical state
+         */
+        void write(uint32_t value) const;
+
+        /**
+         * @brief Set logical state of the pins in the bus.
+         * @param value Bus logical state
+         */
+        const Bus& operator=(uint32_t value) const;
     };
 }
 
@@ -93,16 +169,28 @@ struct Bus : Detail::Bus {
     static_assert(N <= 32);
     std::array<Pin, N> pins;
 
+    /**
+     * @brief Constexpr constructor allowing to define a bus and its
+     * configuration during compile-time.
+     * @param port Port number
+     * @param pins Initializer list of constexpr pin instances.
+     */
     constexpr Bus(uint32_t port, std::array<Pin, N> pins)
-        : Detail::Bus{0, port}
+        : Detail::Bus{port, 0, 0}
         , pins(pins)
     {
         for (auto& pin : pins) {
             assert(port == pin.port);
             mask |= pin.mask;
+            invert_mask |= pin.config.inverted
+                ? pin.mask : 0;
         }
     }
 
+    /**
+     * @brief Runtime initialisation of the bus and its pins based on the
+     * compile-time defined configuration
+     */
     void init() const {
         for (auto& pin : pins) {
             pin.init();

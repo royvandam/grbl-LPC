@@ -48,7 +48,8 @@ void Pin::init() const {
     set_open_drain(config.open_drain);
     set_direction(config.direction);
 
-    set(config.init_val);
+    // Set initial configuration value
+    set(config.value);
 }
 
 void Pin::set_pull(Pull pull) const {
@@ -79,19 +80,17 @@ void Pin::set_open_drain(bool enabled) const {
 }
 
 uint32_t Pin::get() const {
-    return LPC_GPIO(port)->FIOPIN & mask;
+    return (LPC_GPIO(port)->FIOPIN & mask) ^ config.inverted;
 }
 
 void Pin::set(uint32_t value) const {
-    value
-        ? LPC_GPIO(port)->FIOSET = mask
-        : LPC_GPIO(port)->FIOCLR = mask;
+    (value ^ config.inverted)
+        ? LPC_GPIO(port)->FIOPIN |= mask
+        : LPC_GPIO(port)->FIOPIN &= ~mask;
 }
 
 void Pin::toggle() const {
-    (LPC_GPIO(port)->FIOPIN & mask)
-        ? LPC_GPIO(port)->FIOCLR = mask
-        : LPC_GPIO(port)->FIOSET = mask;
+    set(!get());
 }
 
 const Pin& Pin::operator=(uint32_t value) const {
@@ -112,12 +111,12 @@ void Bus::write(uint32_t value) const {
 
     // The LCP however supports a masked write to the port...
     LPC_GPIO(port)->FIOMASK = ~mask;
-    LPC_GPIO(port)->FIOPIN |= value;
+    LPC_GPIO(port)->FIOPIN |= (value ^ invert_mask);
     LPC_GPIO(port)->FIOMASK = 0;
 }
 
 uint32_t Bus::read() const {
-    return LPC_GPIO(port)->FIOPIN & mask;
+    return (LPC_GPIO(port)->FIOPIN & mask) ^ invert_mask;
 }
 
 const Bus& Bus::operator=(uint32_t value) const {
