@@ -1,23 +1,32 @@
 ![GitHub Logo](https://github.com/gnea/gnea-Media/blob/master/Grbl%20Logo/Grbl%20Logo%20250px.png?raw=true)
 
 ***
-Old releases are in the `Release` tab. See [cprezzi's branch](https://github.com/cprezzi/grbl-LPC) for more recent releases.
-Note: cprezzi's branch disables current control and has defaults more suitable for other boards.
-***
-This is GRBL 1.1 ported to the LPC1769. 
-It can run on the following boards:
-- Smoothieboard
-- Cohesion3D Remix and Mini
-- MKS SBase
-- Azteeg X5 
+This is an attempt to create a modern C++ port of GRBL based on the work previously done by [GNEA](https://github.com/gnea/grbl-LPC) and
+[cprezzi](https://github.com/cprezzi/grbl-LPC). It uses the original implementation but replaces the register based peripheral access by a
+set of static abstractions heavily leaning on constexpr initialization of structs for the configuration. It simplifies and generalizes
+how GRBL interacts with peripherals, allowing to port this implementation easily to other MCUs e.g. STM32. Theoretically it would also be
+possible to back-port this to the original 8bit AVR MCUs.
 
-SKR boards don't work, because pin mapping is messed!
+***
+
+Things to be done:
+ - Drivers:
+   - Timer
+   - PWM
+   - I2C
+   - Serial {USB, UART}
+ - Port existing pin-maps supported by the original grbl-lpc
+   - Cohesion3D Remix and Mini
+   - MKS SBase
+   - Azteeg X5 
+ - Replace make with CMake (maybe...)
+
+NOTE: SKR boards don't work, because pin mapping is messed!
 
 **Usage notes:**
 * This uses a different usb-serial driver than Smoothieware. Windows 10 should recognize it automatically.
   If it doesn't, try installing VCOM_lib/usbser.inf.
 * This doesn't pass the sdcard to the host. Once installed you need to use a micro sdcard adaptor to replace or change it.
-* Only tested with lasers with PWM. Non-PWM spindle control not ported.
 * These are defaults for easy-to-change config values.
   * WPos enabled for LaserWeb compatability ($10=0)
   * Laser mode: ON ($32)
