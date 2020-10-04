@@ -26,6 +26,7 @@ namespace board {
 
 void init();
 
+// Define debug LED output pins. 
 constexpr static GPIO::Pin leds[] = {
     GPIO::Pin(1, 18, GPIO::Direction::Output),
     GPIO::Pin(1, 19, GPIO::Direction::Output),
@@ -33,14 +34,18 @@ constexpr static GPIO::Pin leds[] = {
     GPIO::Pin(1, 21, GPIO::Direction::Output)
 };
 
-namespace steppers {
-    constexpr static GPIO::Bus<4> step(0, {
+// Define step related pins.
+// NOTE: All pins within a bus must be on the same port.
+namespace step {
+    // Define step pulse output pins. 
+    constexpr static GPIO::Bus<4> pulse(0, {
         GPIO::Pin(0, 0, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 1, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
         GPIO::Pin(0, 2, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
         GPIO::Pin(0, 3, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
     });
 
+    // Define step direction output pins.
     constexpr static GPIO::Bus<4> direction(0, {
         GPIO::Pin(0,  5, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 11, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
@@ -48,6 +53,7 @@ namespace steppers {
         GPIO::Pin(0, 22, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
     });
 
+    // Define stepper driver enable/disable output pins.
     constexpr static GPIO::Bus<4> enable(0, {
         GPIO::Pin(0,  4, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
         GPIO::Pin(0, 10, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
@@ -63,6 +69,8 @@ namespace spindle {
     constexpr static GPIO::Pin direction(1, 22, GPIO::Direction::Output);
 }
 
+// Define homing/hard limit switch input pins 
+// NOTE: All limit bit pins must be on the same port
 constexpr static GPIO::Bus<6> limits(1, {
     GPIO::Pin(1, 24, GPIO::Direction::Input, GPIO::Pull::Up), // X Min
     GPIO::Pin(1, 25, GPIO::Direction::Input, GPIO::Pull::Up), // X Max
@@ -70,11 +78,16 @@ constexpr static GPIO::Bus<6> limits(1, {
     GPIO::Pin(1, 27, GPIO::Direction::Input, GPIO::Pull::Up), // Y Max
     GPIO::Pin(1, 28, GPIO::Direction::Input, GPIO::Pull::Up), // Z Min
     GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up)  // Z Max
-});
+}); 
+
+// Define flood and mist coolant enable output pins.
+namespace coolant {
+    constexpr static GPIO::Pin flood(2, 22, GPIO::Direction::Output, GPIO::Pull::None);
+    constexpr static GPIO::Pin mist(2, 6, GPIO::Direction::Output, GPIO::Pull::None);
+}
 
 }
 
-// Define step pulse output pins. NOTE: All step bit pins must be on the same port.
 #define STEP_DDR        LPC_GPIO2->FIODIR
 #define STEP_PORT       LPC_GPIO2->FIOPIN
 #define X_STEP_BIT      0
@@ -83,7 +96,6 @@ constexpr static GPIO::Bus<6> limits(1, {
 #define A_STEP_BIT      3
 #define STEP_MASK       ((1<<X_STEP_BIT)|(1<<Y_STEP_BIT)|(1<<Z_STEP_BIT)|(1<<A_STEP_BIT)) // All step bits
 
-// Define step direction output pins. NOTE: All direction pins must be on the same port.
 #define DIRECTION_DDR     LPC_GPIO0->FIODIR
 #define DIRECTION_PORT    LPC_GPIO0->FIOPIN
 #define X_DIRECTION_BIT   5
@@ -92,7 +104,6 @@ constexpr static GPIO::Bus<6> limits(1, {
 #define A_DIRECTION_BIT   22
 #define DIRECTION_MASK    ((1<<X_DIRECTION_BIT)|(1<<Y_DIRECTION_BIT)|(1<<Z_DIRECTION_BIT)|(1<<A_DIRECTION_BIT)) // All direction bits
 
-// Define stepper driver enable/disable output pin.
 #define STEPPERS_DISABLE_DDR    LPC_GPIO0->FIODIR
 #define STEPPERS_DISABLE_PORT   LPC_GPIO0->FIOPIN
 #define X_DISABLE_BIT           4
@@ -101,8 +112,6 @@ constexpr static GPIO::Bus<6> limits(1, {
 #define A_DISABLE_BIT           21
 #define STEPPERS_DISABLE_MASK   ((1<<X_DISABLE_BIT)|(1<<Y_DISABLE_BIT)|(1<<Z_DISABLE_BIT)|(1<<A_DISABLE_BIT))
 
-// Define homing/hard limit switch input pins and limit interrupt vectors.
-// NOTE: All limit bit pins must be on the same port, but not on a port with other input pins (CONTROL).
 #define LIMIT_DDR         LPC_GPIO1->FIODIR
 #define LIMIT_PIN         LPC_GPIO1->FIOPIN
 #define LIMIT_PORT        LPC_GPIO1->FIOPIN
@@ -121,14 +130,7 @@ constexpr static GPIO::Bus<6> limits(1, {
 #define SPINDLE_PWM_USE_PRIMARY_PIN   false
 #define SPINDLE_PWM_USE_SECONDARY_PIN true
 
-// Define flood and mist coolant enable output pins.
-#define COOLANT_FLOOD_DDR   LPC_GPIO2->FIODIR
-#define COOLANT_FLOOD_PORT  LPC_GPIO2->FIOPIN
-#define COOLANT_FLOOD_BIT   22  // SMALL MOSFET Q8 (P2.22)
-#define COOLANT_MIST_DDR    LPC_GPIO2->FIODIR
-#define COOLANT_MIST_PORT   LPC_GPIO2->FIOPIN
-#define COOLANT_MIST_BIT    6  // SMALL MOSFET Q9 (P2.6)
-#define ENABLE_M7           // enables COOLANT MIST
+// #define ENABLE_M7           // enables COOLANT MIST
 
 // Define user-control controls (cycle start, reset, feed hold) input pins.
 // NOTE: All CONTROLs pins must be on the same port and not on a port with other input pins (limits).

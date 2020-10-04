@@ -21,7 +21,7 @@
 #include "grbl.h"
 
 // Inverts the probe pin state depending on user settings and probing cycle mode.
-bool invert_probe;
+bool invert_probe_pin;
 
 // Probe pin initialization routine.
 void probe_init() {
@@ -37,20 +37,20 @@ void probe_init() {
 // and the probing cycle modes for toward-workpiece/away-from-workpiece.
 void probe_configure_invert(uint8_t is_probe_away)
 {
-  invert_probe = bit_istrue(settings.flags, BITFLAG_INVERT_PROBE_PIN);
+  invert_probe_pin = bit_istrue(settings.flags, BITFLAG_INVERT_PROBE_PIN);
 
   if (is_probe_away) {
-      invert_probe = !invert_probe;
+      invert_probe_pin = !invert_probe_pin;
   }
 }
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 uint8_t probe_get_state() { 
-	return board::probe.get() ^ invert_probe;
+	return board::probe.get() ^ invert_probe_pin;
 }
 
-// Monitors probe pin state and records the system position when detected. Called by the
-// stepper ISR per ISR tick.
+// Monitors probe pin state and records the system position when detected.
+// Called by the stepper ISR per ISR tick.
 // NOTE: This function must be extremely efficient as to not bog down the stepper ISR.
 void probe_state_monitor()
 {

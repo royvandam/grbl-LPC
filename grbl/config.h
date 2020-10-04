@@ -169,11 +169,6 @@
 // coordinates through Grbl '$#' print parameters.
 #define MESSAGE_PROBE_COORDINATES // Enabled by default. Comment to disable.
 
-// Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
-// analog pin 4. Only use this option if you require a second coolant control pin.
-// NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
-// #define ENABLE_M7 // Disabled by default. Uncomment to enable.
-
 // This option causes the feed hold input to act as a safety door switch. A safety door, when triggered,
 // immediately forces a feed hold and then safely de-energizes the machine. Resuming is blocked until
 // the safety door is re-engaged. When it is, Grbl will re-energize the machine and then resume on the
@@ -220,6 +215,11 @@
 // for some pre-built electronic boards.
 // #define INVERT_COOLANT_FLOOD_PIN // Default disabled. Uncomment to enable.
 // #define INVERT_COOLANT_MIST_PIN // Default disabled. Note: Enable M7 mist coolant in config.h
+
+// Enables a second coolant control pin via the mist coolant g-code command M7 on the Arduino Uno
+// analog pin 4. Only use this option if you require a second coolant control pin.
+// NOTE: The M8 flood coolant control pin on analog pin 3 will still be functional regardless.
+// #define ENABLE_M7 // Disabled by default. Uncomment to enable.
 
 // When Grbl powers-cycles or is hard reset with the Arduino reset button, Grbl boots up with no ALARM
 // by default. This is to make it as simple as possible for new users to start using Grbl. When homing

@@ -3,6 +3,7 @@
   Part of Grbl
 
   Copyright (c) 2012-2016 Sungeun K. Jeon for Gnea Research LLC
+  Copyright (c) 2020 Roy van Dam
 
   Grbl is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -20,104 +21,92 @@
 
 #include "grbl.h"
 
+#ifdef INVERT_COOLANT_FLOOD_PIN
+constexpr static bool invert_flood_pin = true;
+#else
+constexpr static bool invert_flood_pin = false;
+#endif
 
-void coolant_init()
-{
-  COOLANT_FLOOD_DDR |= (1 << COOLANT_FLOOD_BIT); // Configure as output pin
-  #ifdef ENABLE_M7
-    COOLANT_MIST_DDR |= (1 << COOLANT_MIST_BIT);
-  #endif
-  coolant_stop();
+#ifdef INVERT_COOLANT_MIST_PIN
+constexpr static bool invert_mist_pin = true;
+#else
+constexpr static bool invert_mist_pin = false;
+#endif
+
+using namespace board;
+
+void coolant_init() {
+    coolant::flood.init(); 
+#ifdef ENABLE_M7
+    coolant::mist.init();
+#endif
+
+    coolant_stop();
 }
-
 
 // Returns current coolant output state. Overrides may alter it from programmed state.
-uint8_t coolant_get_state()
-{
-  uint8_t cl_state = COOLANT_STATE_DISABLE;
-  #ifdef INVERT_COOLANT_FLOOD_PIN
-    if (bit_isfalse(COOLANT_FLOOD_PORT,(1 << COOLANT_FLOOD_BIT))) {
-  #else
-    if (bit_istrue(COOLANT_FLOOD_PORT,(1 << COOLANT_FLOOD_BIT))) {
-  #endif
-    cl_state |= COOLANT_STATE_FLOOD;
-  }
-  #ifdef ENABLE_M7
-    #ifdef INVERT_COOLANT_MIST_PIN
-      if (bit_isfalse(COOLANT_MIST_PORT,(1 << COOLANT_MIST_BIT))) {
-    #else
-      if (bit_istrue(COOLANT_MIST_PORT,(1 << COOLANT_MIST_BIT))) {
-    #endif
-      cl_state |= COOLANT_STATE_MIST;
-    }
-  #endif
-  return(cl_state);
-}
+uint8_t
+coolant_get_state() {
+    uint8_t cl_state = COOLANT_STATE_DISABLE;
 
+    if (coolant::flood.get() ^ invert_flood_pin) {
+        cl_state |= COOLANT_STATE_FLOOD;
+    }
+
+#ifdef ENABLE_M7
+    if (coolant::mist.get() ^ invert_mist_pin) {
+        cl_state |= COOLANT_STATE_MIST;
+    }
+#endif
+
+    return (cl_state);
+}
 
 // Directly called by coolant_init(), coolant_set_state(), and mc_reset(), which can be at
 // an interrupt-level. No report flag set, but only called by routines that don't need it.
-void coolant_stop()
-{
-  #ifdef INVERT_COOLANT_FLOOD_PIN
-    COOLANT_FLOOD_PORT |= (1 << COOLANT_FLOOD_BIT);
-  #else
-    COOLANT_FLOOD_PORT &= ~(1 << COOLANT_FLOOD_BIT);
-  #endif
-  delay_ms(1); // workaround for toolchain error
-  #ifdef ENABLE_M7
-    #ifdef INVERT_COOLANT_MIST_PIN
-      COOLANT_MIST_PORT |= (1 << COOLANT_MIST_BIT);
-    #else
-      COOLANT_MIST_PORT &= ~(1 << COOLANT_MIST_BIT);
-    #endif
-  #endif
+void coolant_stop() {
+    coolant::flood.set(false ^ invert_flood_pin);
+#ifdef ENABLE_M7
+    coolant::mist.set(false ^ invert_mist_pin);
+#endif
 }
 
-
-// Main program only. Immediately sets flood coolant running state and also mist coolant, 
+// Main program only. Immediately sets flood coolant running state and also mist coolant,
 // if enabled. Also sets a flag to report an update to a coolant state.
 // Called by coolant toggle override, parking restore, parking retract, sleep mode, g-code
 // parser program end, and g-code parser coolant_sync().
-void coolant_set_state(uint8_t mode)
-{
-  if (sys.abort) { return; } // Block during abort.  
-  
-  if (mode == COOLANT_DISABLE) {
-  
-    coolant_stop(); 
-  
-  } else {
-  
-    if (mode & COOLANT_FLOOD_ENABLE) {
-      #ifdef INVERT_COOLANT_FLOOD_PIN
-        COOLANT_FLOOD_PORT &= ~(1 << COOLANT_FLOOD_BIT);
-      #else
-        COOLANT_FLOOD_PORT |= (1 << COOLANT_FLOOD_BIT);
-      #endif
+void coolant_set_state(uint8_t mode) {
+    // Block during abort.
+    if (sys.abort) {
+        return;
+    }  
+
+    if (mode == COOLANT_DISABLE) {
+        coolant_stop();
+    } else {
+        if (mode & COOLANT_FLOOD_ENABLE) {
+            coolant::flood.set(true ^ invert_flood_pin);
+        }
+
+#ifdef ENABLE_M7
+        if (mode & COOLANT_MIST_ENABLE) {
+            coolant::mist.set(true ^ invert_mist_pin);
+        }
+#endif
     }
-    delay_ms(1); // workaround for toolchain error
-  
-    #ifdef ENABLE_M7
-      if (mode & COOLANT_MIST_ENABLE) {
-        #ifdef INVERT_COOLANT_MIST_PIN
-          COOLANT_MIST_PORT &= ~(1 << COOLANT_MIST_BIT);
-        #else
-          COOLANT_MIST_PORT |= (1 << COOLANT_MIST_BIT);
-        #endif
-      }
-    #endif
-  
-  }
-  sys.report_ovr_counter = 0; // Set to report change immediately
+
+    // Set to report change immediately
+    sys.report_ovr_counter = 0;  
 }
 
-
-// G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails 
+// G-code parser entry-point for setting coolant state. Forces a planner buffer sync and bails
 // if an abort or check-mode is active.
-void coolant_sync(uint8_t mode)
-{
-  if (sys.state == STATE_CHECK_MODE) { return; }
-  protocol_buffer_synchronize(); // Ensure coolant turns on when specified in program.
-  coolant_set_state(mode);
+void
+coolant_sync(uint8_t mode) {
+    if (sys.state == STATE_CHECK_MODE) {
+        return;
+    }
+    // Ensure coolant turns on when specified in program.
+    protocol_buffer_synchronize();
+    coolant_set_state(mode);
 }
