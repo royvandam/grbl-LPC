@@ -23,7 +23,7 @@
 using namespace board;
 
 // Inverts the probe pin state depending on the probing cycle mode.
-bool probe_away_enabled;
+static bool probe_away_enabled = false;
 
 // Probe pin initialization routine.
 void probe_init() {

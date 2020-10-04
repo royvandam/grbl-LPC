@@ -42,8 +42,8 @@ struct Pin {
     struct Config {
         Direction direction;
         Pull pull;
-        bool open_drain;
         bool inverted;
+        bool open_drain;
         uint32_t value;
     } config;
 
@@ -54,15 +54,15 @@ struct Pin {
      * @param index Pin number
      * @param direction Pin direction {Input, Output}
      * @param pull Pin pull mode {None Up, Down}
-     * @param open_drain Configure pin as open-drain output
      * @param inverted Set pin logical state as inverted
+     * @param open_drain Configure pin as open-drain output
      * @param value Initial configuration value
      */
     constexpr Pin(uint8_t port, uint8_t index,
         Direction direction = Direction::Input,
         Pull pull = Pull::Up,
-        bool open_drain = false,
         bool inverted = false,
+        bool open_drain = false,
         uint32_t value = 0UL
     )
         : port(port)
@@ -70,7 +70,7 @@ struct Pin {
         , mask(1 << index)
         , config({
             direction, pull,
-            open_drain, inverted,
+            inverted, open_drain,
             value
         })
     {}
@@ -182,8 +182,9 @@ struct Bus : Detail::Bus {
         for (auto& pin : pins) {
             assert(port == pin.port);
             mask |= pin.mask;
-            invert_mask |= pin.config.inverted
-                ? pin.mask : 0;
+            if (pin.config.inverted) {
+                invert_mask |= pin.mask;
+            }
         }
     }
 

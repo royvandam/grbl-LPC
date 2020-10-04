@@ -25,8 +25,6 @@ void isr_init();
 
 /*Holding space for dummy registers*/
 extern DummyReg NotUsed;
-extern DummyReg PCICR;
-extern DummyReg PCIE1;
 
 // Declare system global variable structure
 system_t sys;
@@ -72,8 +70,6 @@ int main(void)
   #ifdef HOMING_INIT_LOCK
     if (bit_istrue(settings.flags,BITFLAG_HOMING_ENABLE)) { sys.state = STATE_ALARM; }
   #endif
-
-  board::leds[0] = true;
 
   // Grbl initialization loop upon power-up or a system abort. For the latter, all processes
   // will return to this loop to be cleanly re-initialized.

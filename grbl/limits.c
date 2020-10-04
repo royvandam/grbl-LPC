@@ -121,7 +121,7 @@ void limits_go_home(uint8_t cycle_mask) {
 #endif
 
     // Initialize variables used for homing computations.
-    uint8_t n_cycle = (2 * N_HOMING_LOCATE_CYCLE + 1);
+    uint8_t n_cycle = (N_HOMING_LOCATE_CYCLE + 1);
     uint32_t step_mask[N_AXIS];  // Tracks which pins correspond to which axes
     float target[N_AXIS];
     float max_travel = 0.0;  // Maximum travel distance to move searching for limits
@@ -202,7 +202,11 @@ void limits_go_home(uint8_t cycle_mask) {
 
         // Perform homing cycle. Planner buffer should be empty, as required to initiate the homing
         // cycle.
-        pl_data->feed_rate = homing_rate;   // Set current homing rate.
+        if (axis == Z_AXIS) {
+            pl_data->feed_rate = Z_HOMING_RATE;
+        } else {
+            pl_data->feed_rate = homing_rate;   // Set current homing rate.
+        }
         plan_buffer_line(target, pl_data);  // Bypass mc_line(). Directly plan homing motion.
 
         sys.step_control = STEP_CONTROL_EXECUTE_SYS_MOTION;  // Set to execute homing motion and

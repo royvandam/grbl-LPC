@@ -54,7 +54,7 @@ void Pin::init() const {
 
 void Pin::set_pull(Pull pull) const {
     LPC_PINMODE(port, index) &= ~(0x03UL << (LPC_PIN_OFFSET(index) * 2));
-    switch (config.pull) {
+    switch (pull) {
         case Pull::Up:
             LPC_PINMODE(port, index) |= LPC_PINMODE_PULLUP << (LPC_PIN_OFFSET(index) * 2);
             break;
@@ -68,7 +68,7 @@ void Pin::set_pull(Pull pull) const {
 };
 
 void Pin::set_direction(Direction direction) const {
-    LPC_GPIO(port)->FIODIR = (direction == Direction::Input)
+    LPC_GPIO(port)->FIODIR = (direction == Direction::Output)
         ? LPC_GPIO(port)->FIODIR | mask
         : LPC_GPIO(port)->FIODIR & ~mask;
 };

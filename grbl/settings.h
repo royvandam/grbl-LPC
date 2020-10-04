@@ -27,7 +27,7 @@
 
 // Version of the EEPROM data. Will be used to migrate existing data from older versions of Grbl
 // when firmware is upgraded. Always stored in byte 0 of EEPROM.
-#define SETTINGS_VERSION 11  // NOTE: Check settings_reset() when moving to next version.
+#define SETTINGS_VERSION 12  // NOTE: Check settings_reset() when moving to next version.
 
 // Define bit flag masks for the boolean settings in settings.flag.
 #define BITFLAG_REPORT_INCHES      bit(0)

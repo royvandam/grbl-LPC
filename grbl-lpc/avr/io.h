@@ -9,6 +9,4 @@ struct DummyReg {
 };
 
 extern DummyReg NotUsed;
-extern DummyReg PCICR;
-extern DummyReg PCIE1;
 

@@ -29,7 +29,7 @@ void init();
 
 // Define debug LED output pins. 
 constexpr static GPIO::Pin leds[] = {
-    GPIO::Pin(1, 18, GPIO::Direction::Output),
+    // GPIO::Pin(1, 18, GPIO::Direction::Output), // 1.18 Unavailable used by USB driver
     GPIO::Pin(1, 19, GPIO::Direction::Output),
     GPIO::Pin(1, 20, GPIO::Direction::Output),
     GPIO::Pin(1, 21, GPIO::Direction::Output)
@@ -40,27 +40,27 @@ constexpr static GPIO::Pin leds[] = {
 // NOTE: The order is crucial, must be XYZA!
 namespace step {
     // Define step output pins. 
-    constexpr static GPIO::Bus<N_AXIS> step(0, {
-        GPIO::Pin(0, 0, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
-        GPIO::Pin(0, 1, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
-        GPIO::Pin(0, 2, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
-        // GPIO::Pin(0, 3, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
-    });
-
-    // Define step direction output pins.
-    constexpr static GPIO::Bus<N_AXIS> direction(0, {
-        GPIO::Pin(0,  5, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
-        GPIO::Pin(0, 11, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
-        GPIO::Pin(0, 20, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
-        // GPIO::Pin(0, 22, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+    constexpr static GPIO::Bus<N_AXIS> step(2, {
+        GPIO::Pin(2, 0, GPIO::Direction::Output, GPIO::Pull::None, true, true), // X Axis
+        GPIO::Pin(2, 1, GPIO::Direction::Output, GPIO::Pull::None, true, true), // Y Axis
+        GPIO::Pin(2, 2, GPIO::Direction::Output, GPIO::Pull::None, true, true), // Z Axis
+        // GPIO::Pin(0, 3, GPIO::Direction::Output, GPIO::Pull::None, true, true)  // A Axis
     });
 
     // Define stepper driver enable/disable output pins.
     constexpr static GPIO::Bus<N_AXIS> enable(0, {
-        GPIO::Pin(0,  4, GPIO::Direction::Output, GPIO::Pull::None, true), // X Axis
-        GPIO::Pin(0, 10, GPIO::Direction::Output, GPIO::Pull::None, true), // Y Axis
-        GPIO::Pin(0, 19, GPIO::Direction::Output, GPIO::Pull::None, true), // Z Axis
-        // GPIO::Pin(0, 21, GPIO::Direction::Output, GPIO::Pull::None, true)  // A Axis
+        GPIO::Pin(0,  4, GPIO::Direction::Output, GPIO::Pull::None, false, true), // X Axis
+        GPIO::Pin(0, 10, GPIO::Direction::Output, GPIO::Pull::None, false, true), // Y Axis
+        GPIO::Pin(0, 19, GPIO::Direction::Output, GPIO::Pull::None, false, true), // Z Axis
+        // GPIO::Pin(0, 21, GPIO::Direction::Output, GPIO::Pull::None, true, true)  // A Axis
+    });
+
+    // Define step direction output pins.
+    constexpr static GPIO::Bus<N_AXIS> direction(0, {
+        GPIO::Pin(0,  5, GPIO::Direction::Output, GPIO::Pull::None, true, true), // X Axis
+        GPIO::Pin(0, 11, GPIO::Direction::Output, GPIO::Pull::None, true, true), // Y Axis
+        GPIO::Pin(0, 20, GPIO::Direction::Output, GPIO::Pull::None, true, true), // Z Axis
+        // GPIO::Pin(0, 22, GPIO::Direction::Output, GPIO::Pull::None, true, true)  // A Axis
     });
 }
 
@@ -68,18 +68,18 @@ namespace step {
 // NOTE: All limit bit pins must be on the same port
 // NOTE: The order is crucial, must be XYZA!
 constexpr static GPIO::Bus<N_AXIS * 2> limit(1, {
-    GPIO::Pin(1, 24, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // X Min
-    GPIO::Pin(1, 25, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // X Max
+    GPIO::Pin(1, 24, GPIO::Direction::Input, GPIO::Pull::Up, true), // X Min
+    GPIO::Pin(1, 25, GPIO::Direction::Input, GPIO::Pull::Up, true), // X Max
 
-    GPIO::Pin(1, 26, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // Y Min
-    GPIO::Pin(1, 27, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // Y Max
+    GPIO::Pin(1, 26, GPIO::Direction::Input, GPIO::Pull::Up, true), // Y Min
+    GPIO::Pin(1, 27, GPIO::Direction::Input, GPIO::Pull::Up, true), // Y Max
 
-    GPIO::Pin(1, 28, GPIO::Direction::Input, GPIO::Pull::Up, false, true), // Z Min
-    GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up, false, true)  // Z Max
+    GPIO::Pin(1, 28, GPIO::Direction::Input, GPIO::Pull::Up, true), // Z Min
+    GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up, true)  // Z Max
 }); 
 
 // Define probe input pin
-constexpr static GPIO::Pin probe(1, 30, GPIO::Direction::Input, GPIO::Pull::Up, true, true);
+constexpr static GPIO::Pin probe(0, 27, GPIO::Direction::Input, GPIO::Pull::Up, true);
 
 // Define spindle control output pins
 namespace spindle {
@@ -93,6 +93,11 @@ namespace coolant {
     constexpr static GPIO::Pin mist(2, 6, GPIO::Direction::Output, GPIO::Pull::None);
 }
 
+namespace control {
+    constexpr static GPIO::Pin feed_hold(3, 28, GPIO::Direction::Input, GPIO::Pull::Up, true);
+    constexpr static GPIO::Pin cycle_start(3, 29, GPIO::Direction::Input, GPIO::Pull::Up, true);
+}
+
 }
 
 // The LPC17xx has 6 PWM channels. Each channel has 2 pins. It can drive both pins simultaneously to the same value.
@@ -103,23 +108,6 @@ namespace coolant {
 #define SPINDLE_PWM_CHANNEL           PWM1_CH6    // BED MOSFET (P2.5)
 #define SPINDLE_PWM_USE_PRIMARY_PIN   false
 #define SPINDLE_PWM_USE_SECONDARY_PIN true
-
-// #define ENABLE_M7           // enables COOLANT MIST
-
-// Define user-control controls (cycle start, reset, feed hold) input pins.
-// NOTE: All CONTROLs pins must be on the same port and not on a port with other input pins (limits).
-#define CONTROL_DDR       LPC_GPIO1->FIODIR
-#define CONTROL_PIN       LPC_GPIO1->FIOPIN
-#define CONTROL_PORT      LPC_GPIO1->FIOPIN
-#define CONTROL_RESET_BIT         NotUsed  // Not needed as there is a special RESET pin on the Smoothiebaord
-#define CONTROL_FEED_HOLD_BIT     22  // P1.22
-#define CONTROL_CYCLE_START_BIT   23  // P1.23
-#define CONTROL_SAFETY_DOOR_BIT   22  // P1.22 NOTE: Safety door is shared with feed hold. Enabled by config define.
-#define CONTROL_INT       PCIE1  // Pin change interrupt enable pin
-#define CONTROL_INT_vect  PCINT1_vect
-#define CONTROL_PCMSK     NotUsed // Pin change interrupt register
-#define CONTROL_MASK      ((1<<CONTROL_RESET_BIT)|(1<<CONTROL_FEED_HOLD_BIT)|(1<<CONTROL_CYCLE_START_BIT)|(1<<CONTROL_SAFETY_DOOR_BIT))
-#define CONTROL_INVERT_MASK   CONTROL_MASK // May be re-defined to only invert certain control pins.
 
 // Stepper current control
 #define CURRENT_I2C Driver_I2C1       // I2C driver for current control. Comment out to disable (for C3d boards!)

@@ -45,19 +45,14 @@
 // g-code programs, maybe selected for interface programs.
 // NOTE: If changed, manually update help message in report.c.
 
-#define CMD_RESET 0x18 // ctrl-x.
-#define CMD_STATUS_REPORT '?'
-#define CMD_CYCLE_START '~'
-#define CMD_FEED_HOLD '!'
-
 // NOTE: All override realtime commands must be in the extended ASCII character set, starting
 // at character value 128 (0x80) and up to 255 (0xFF). If the normal set of realtime commands,
 // such as status reports, feed hold, reset, and cycle start, are moved to the extended set
 // space, serial.c's RX ISR will need to be modified to accommodate the change.
-// #define CMD_RESET 0x80
-// #define CMD_STATUS_REPORT 0x81
-// #define CMD_CYCLE_START 0x82
-// #define CMD_FEED_HOLD 0x83
+#define CMD_RESET 0x18 // ctrl-x.
+#define CMD_STATUS_REPORT '?'
+#define CMD_CYCLE_START '~'
+#define CMD_FEED_HOLD '!'
 #define CMD_SAFETY_DOOR 0x84
 #define CMD_JOG_CANCEL  0x85
 #define CMD_DEBUG_REPORT 0x86 // Only when DEBUG enabled, sends debug report in '{}' braces.
@@ -95,7 +90,7 @@
 // cycle, but this requires some pin settings changes in board.h file. For example, the default homing
 // cycle can share the Z limit pin with either X or Y limit pins, since they are on different cycles.
 // By sharing a pin, this frees up a precious IO pin for other purposes. In theory, all axes limit pins
-// may be reduced to one pin, if all axes are homed with seperate cycles, or vice versa, all three axes
+// may be reduced to one pin, if all axes are homed with separate cycles, or vice versa, all three axes
 // on separate pin, but homed in one cycle. Also, it should be noted that the function of hard limits
 // will not be affected by pin sharing.
 // NOTE: Defaults are set for a traditional 3-axis CNC machine. Z-axis first to clear, followed by X & Y.
@@ -113,7 +108,11 @@
 // Number of homing cycles performed after when the machine initially jogs to limit switches.
 // This helps in preventing overshoot and should improve repeatability. This value should be one or
 // greater.
-#define N_HOMING_LOCATE_CYCLE 2 // Integer (1-128)
+#define N_HOMING_LOCATE_CYCLE 1 // Integer (1-128)
+
+// The Z axis generally have a much shorter travel than the XY axes. Running the XY homing on a speed that
+// makes sense for the Z axis on a very large machine takes ages to complete.
+#define Z_HOMING_RATE 250.0
 
 // Enables single axis homing commands. $HX, $HY, and $HZ for X, Y, and Z-axis homing. The full homing 
 // cycle is still invoked by the $H command. This is disabled by default. It's here only to address
@@ -124,7 +123,7 @@
 // After homing, Grbl will set by default the entire machine space into negative space, as is typical
 // for professional CNC machines, regardless of where the limit switches are located. Uncomment this
 // define to force Grbl to always set the machine origin at the homed location despite switch orientation.
-// #define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
+#define HOMING_FORCE_SET_ORIGIN // Uncomment to enable.
 
 // Uncomment this define to force Grbl to always set the machine origin at bottom left.
 #define HOMING_FORCE_POSITIVE_SPACE // Uncomment to enable.
