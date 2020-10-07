@@ -607,12 +607,8 @@ void report_realtime_status()
         printPgmString(PSTR("|A:"));
         if (sp_state) { // != SPINDLE_STATE_DISABLE
           #ifdef VARIABLE_SPINDLE 
-            #ifdef USE_SPINDLE_DIR_AS_ENABLE_PIN
-              serial_write('S'); // CW
-            #else
               if (sp_state == SPINDLE_STATE_CW) { serial_write('S'); } // CW
               else { serial_write('C'); } // CCW
-            #endif
           #else
             if (sp_state & SPINDLE_STATE_CW) { serial_write('S'); } // CW
             else { serial_write('C'); } // CCW

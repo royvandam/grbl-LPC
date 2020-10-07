@@ -74,7 +74,6 @@ void write_global_settings(bool commit)
     eeprom_commit();
 }
 
-
 // Method to restore EEPROM-saved Grbl global settings back to defaults.
 void settings_restore(uint8_t restore_flag) {
   if (restore_flag & SETTINGS_RESTORE_DEFAULTS) {
@@ -104,36 +103,39 @@ void settings_restore(uint8_t restore_flag) {
     if (DEFAULT_HOMING_ENABLE)     { settings.flags |= BITFLAG_HOMING_ENABLE;     }
     if (DEFAULT_SOFT_LIMIT_ENABLE) { settings.flags |= BITFLAG_SOFT_LIMIT_ENABLE; }
 
-    settings.steps_per_mm[X_AXIS] = DEFAULT_X_STEPS_PER_MM;
-    settings.steps_per_mm[Y_AXIS] = DEFAULT_Y_STEPS_PER_MM;
-    settings.steps_per_mm[Z_AXIS] = DEFAULT_Z_STEPS_PER_MM;
-    settings.steps_per_mm[A_AXIS] = DEFAULT_A_STEPS_PER_MM;
-    //settings.steps_per_mm[B_AXIS] = DEFAULT_B_STEPS_PER_MM;
-    //settings.steps_per_mm[C_AXIS] = DEFAULT_C_STEPS_PER_MM;
-    settings.max_rate[X_AXIS] = DEFAULT_X_MAX_RATE;
-    settings.max_rate[Y_AXIS] = DEFAULT_Y_MAX_RATE;
-    settings.max_rate[Z_AXIS] = DEFAULT_Z_MAX_RATE;
-    settings.max_rate[A_AXIS] = DEFAULT_A_MAX_RATE;
-    //settings.max_rate[B_AXIS] = DEFAULT_B_MAX_RATE;
-    //settings.max_rate[C_AXIS] = DEFAULT_C_MAX_RATE;
     settings.acceleration[X_AXIS] = DEFAULT_X_ACCELERATION;
-    settings.acceleration[Y_AXIS] = DEFAULT_Y_ACCELERATION;
-    settings.acceleration[Z_AXIS] = DEFAULT_Z_ACCELERATION;
-    settings.acceleration[A_AXIS] = DEFAULT_A_ACCELERATION;
-    //settings.acceleration[B_AXIS] = DEFAULT_B_ACCELERATION;
-    //settings.acceleration[C_AXIS] = DEFAULT_C_ACCELERATION;
-    settings.max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL);
-    settings.max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL);
-    settings.max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL);
-    settings.max_travel[A_AXIS] = (-DEFAULT_A_MAX_TRAVEL);
-    //settings.max_travel[B_AXIS] = (-DEFAULT_B_MAX_TRAVEL);
-    //settings.max_travel[C_AXIS] = (-DEFAULT_C_MAX_TRAVEL);
     settings.current[X_AXIS] = DEFAULT_X_CURRENT;
+    settings.max_rate[X_AXIS] = DEFAULT_X_MAX_RATE;
+    settings.max_travel[X_AXIS] = (-DEFAULT_X_MAX_TRAVEL);
+    settings.steps_per_mm[X_AXIS] = DEFAULT_X_STEPS_PER_MM;
+
+    settings.acceleration[Y_AXIS] = DEFAULT_Y_ACCELERATION;
     settings.current[Y_AXIS] = DEFAULT_Y_CURRENT;
+    settings.max_rate[Y_AXIS] = DEFAULT_Y_MAX_RATE;
+    settings.max_travel[Y_AXIS] = (-DEFAULT_Y_MAX_TRAVEL);
+    settings.steps_per_mm[Y_AXIS] = DEFAULT_Y_STEPS_PER_MM;
+
+    settings.acceleration[Z_AXIS] = DEFAULT_Z_ACCELERATION;
     settings.current[Z_AXIS] = DEFAULT_Z_CURRENT;
+    settings.max_rate[Z_AXIS] = DEFAULT_Z_MAX_RATE;
+    settings.max_travel[Z_AXIS] = (-DEFAULT_Z_MAX_TRAVEL);
+    settings.steps_per_mm[Z_AXIS] = DEFAULT_Z_STEPS_PER_MM;
+
+#if (N_ARGS > 3)
+    settings.acceleration[A_AXIS] = DEFAULT_A_ACCELERATION;
     settings.current[A_AXIS] = DEFAULT_A_CURRENT;
-    //settings.current[B_AXIS] = DEFAULT_B_CURRENT;
-    //settings.current[C_AXIS] = DEFAULT_C_CURRENT;
+    settings.max_rate[A_AXIS] = DEFAULT_A_MAX_RATE;
+    settings.max_travel[A_AXIS] = (-DEFAULT_A_MAX_TRAVEL);
+    settings.steps_per_mm[A_AXIS] = DEFAULT_A_STEPS_PER_MM;
+#endif
+
+#if (N_ARGS > 4)
+    settings.acceleration[B_AXIS] = DEFAULT_B_ACCELERATION;
+    settings.current[B_AXIS] = DEFAULT_B_CURRENT;
+    settings.max_rate[B_AXIS] = DEFAULT_B_MAX_RATE;
+    settings.max_travel[B_AXIS] = (-DEFAULT_B_MAX_TRAVEL);
+    settings.steps_per_mm[B_AXIS] = DEFAULT_B_STEPS_PER_MM;
+#endif
 
     write_global_settings(false);
   }
