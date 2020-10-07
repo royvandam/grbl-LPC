@@ -21,8 +21,10 @@
 #include <debug.h>
 #include <board.h>
 
+using namespace board;
+
 void debug_init() {
-    for (auto& led : board::leds) {
+    for (auto& led : leds) {
         led.init();
     }
 }

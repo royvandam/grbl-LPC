@@ -48,8 +48,10 @@ void Pin::init() const {
     set_open_drain(config.open_drain);
     set_direction(config.direction);
 
-    // Set initial configuration value
-    set(config.value);
+    // Set initial output value
+    if (config.direction == Direction::Output) {
+        set(config.value);
+    }
 }
 
 void Pin::set_pull(Pull pull) const {
@@ -80,7 +82,7 @@ void Pin::set_open_drain(bool enabled) const {
 }
 
 uint32_t Pin::get() const {
-    return (LPC_GPIO(port)->FIOPIN & mask) ^ config.inverted;
+    return ((LPC_GPIO(port)->FIOPIN & mask) != 0) ^ config.inverted;
 }
 
 void Pin::set(uint32_t value) const {

@@ -78,8 +78,7 @@ constexpr static GPIO::Bus<N_AXIS * 2> limit(1, {
     GPIO::Pin(1, 29, GPIO::Direction::Input, GPIO::Pull::Up, true)  // Z Max
 }); 
 
-// Define probe input pin
-constexpr static GPIO::Pin probe(0, 27, GPIO::Direction::Input, GPIO::Pull::Up, true);
+constexpr static GPIO::Pin probe(1, 30, GPIO::Direction::Input, GPIO::Pull::Up, true);
 
 // Define spindle control output pins
 namespace spindle {

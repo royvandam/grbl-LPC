@@ -42,6 +42,7 @@ void probe_configure_away(uint8_t enabled) {
 
 // Returns the probe pin state. Triggered = true. Called by gcode parser and probe state monitor.
 uint8_t probe_get_state() {
+    leds[1] = probe.get();
     return probe.get() ^ probe_away_enabled;
 }
 
